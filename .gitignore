@@ -2,6 +2,15 @@
 dist/
 unpackage/
 target/
+.pnpm-store/
+.turbo/
+.coverage/
+coverage/
+.env
+.env.*
+!.env.example
+apps/*/dist/
+apps/weapp/dist/
 .idea/
 *.iml
 .DS_Store

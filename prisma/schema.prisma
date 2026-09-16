@@ -1,0 +1,496 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  OPS
+  MERCHANT_OWNER
+  MERCHANT_STAFF
+  STUDENT
+  RIDER
+}
+
+enum MerchantStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum QualificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum FulfillmentType {
+  PICKUP
+  MERCHANT_DELIVERY
+  RIDER_DELIVERY
+}
+
+enum OrderStatus {
+  CREATED
+  PENDING_PAYMENT
+  PAID
+  MERCHANT_PENDING
+  ACCEPTED
+  REJECTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDING
+  REFUNDED
+}
+
+enum RefundStatus {
+  NONE
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum DeliveryStatus {
+  NONE
+  PENDING_DISPATCH
+  DISPATCHED
+  RIDER_ACCEPTED
+  PICKED_UP
+  DELIVERED
+  FAILED
+}
+
+enum PaymentProvider {
+  MOCK
+  OFFLINE_MERCHANT_DIRECT
+}
+
+enum LedgerEntryType {
+  ORDER_PAYMENT
+  ORDER_REFUND
+  PLATFORM_FEE
+  MERCHANT_SETTLEMENT
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String?  @unique
+  nickname  String
+  role      UserRole @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses          Address[]
+  merchantStaff      MerchantStaff[]
+  orders             Order[]
+  riderProfile       Rider?
+  sentInvitations    StaffInvitation[] @relation("InvitationSender")
+  acceptedInvitation StaffInvitation?  @relation("InvitationAcceptor")
+  dispatches         Dispatch[]        @relation("RiderDispatches")
+  ledgerEntries      LedgerEntry[]
+}
+
+model Campus {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  buildings Building[]
+  merchants Merchant[]
+  riders    Rider[]
+}
+
+model Building {
+  id        String   @id @default(cuid())
+  campusId  String
+  name      String
+  code      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campus    Campus    @relation(fields: [campusId], references: [id])
+  addresses Address[]
+
+  @@unique([campusId, code])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  userId     String
+  buildingId String
+  room       String
+  contact    String
+  phone      String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id])
+  building Building @relation(fields: [buildingId], references: [id])
+  orders   Order[]
+}
+
+model Merchant {
+  id          String         @id @default(cuid())
+  campusId    String
+  name        String
+  description String?
+  status      MerchantStatus @default(PENDING)
+  phone       String?
+  address     String?
+  openHours   String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  campus         Campus                  @relation(fields: [campusId], references: [id])
+  qualifications MerchantQualification[]
+  staff          MerchantStaff[]
+  invitations    StaffInvitation[]
+  categories     Category[]
+  products       Product[]
+  orders         Order[]
+  idempotencyKeys IdempotencyKey[]
+}
+
+model MerchantQualification {
+  id           String              @id @default(cuid())
+  merchantId   String
+  docType      String
+  docUrl       String
+  status       QualificationStatus @default(PENDING)
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  rejectReason String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+}
+
+model MerchantStaff {
+  id         String   @id @default(cuid())
+  merchantId String
+  userId     String
+  role       UserRole @default(MERCHANT_STAFF)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([merchantId, userId])
+}
+
+model StaffInvitation {
+  id          String           @id @default(cuid())
+  merchantId  String
+  inviterId   String
+  phone       String
+  role        UserRole         @default(MERCHANT_STAFF)
+  token       String           @unique @default(cuid())
+  status      InvitationStatus @default(PENDING)
+  acceptorId  String?          @unique
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+  inviter  User     @relation("InvitationSender", fields: [inviterId], references: [id])
+  acceptor User?    @relation("InvitationAcceptor", fields: [acceptorId], references: [id])
+}
+
+model Category {
+  id         String   @id @default(cuid())
+  merchantId String
+  name       String
+  sortOrder  Int      @default(0)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  merchant Merchant  @relation(fields: [merchantId], references: [id])
+  products Product[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  merchantId  String
+  categoryId  String?
+  name        String
+  description String?
+  imageUrl    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  merchant Merchant  @relation(fields: [merchantId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+  skus     Sku[]
+}
+
+model Sku {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  priceCents Int
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product      Product                @relation(fields: [productId], references: [id])
+  inventory    Inventory?
+  orderItems   OrderItem[]
+  reservations InventoryReservation[]
+}
+
+model Inventory {
+  id             String   @id @default(cuid())
+  skuId          String   @unique
+  totalQty       Int      @default(0)
+  reservedQty    Int      @default(0)
+  version        Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  sku Sku @relation(fields: [skuId], references: [id])
+}
+
+model InventoryReservation {
+  id        String   @id @default(cuid())
+  skuId     String
+  orderId   String?
+  qty       Int
+  expiresAt DateTime
+  released  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  sku   Sku    @relation(fields: [skuId], references: [id])
+  order Order? @relation(fields: [orderId], references: [id])
+}
+
+model IdempotencyKey {
+  id           String   @id @default(cuid())
+  merchantId   String
+  key          String
+  requestHash  String
+  responseBody Json?
+  statusCode   Int?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+
+  @@unique([merchantId, key])
+}
+
+model Order {
+  id               String          @id @default(cuid())
+  orderNo          String          @unique
+  userId           String
+  merchantId       String
+  addressId        String?
+  fulfillmentType  FulfillmentType
+  status           OrderStatus     @default(CREATED)
+  paymentStatus    PaymentStatus   @default(PENDING)
+  refundStatus     RefundStatus    @default(NONE)
+  deliveryStatus   DeliveryStatus  @default(NONE)
+  subtotalCents    Int
+  deliveryFeeCents Int             @default(0)
+  totalCents       Int
+  remark           String?
+  pickupCode       String?
+  deliveryCode     String?
+  idempotencyKey   String?
+  paidAt           DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user         User                   @relation(fields: [userId], references: [id])
+  merchant     Merchant               @relation(fields: [merchantId], references: [id])
+  address      Address?               @relation(fields: [addressId], references: [id])
+  items        OrderItem[]
+  payment      Payment?
+  refunds      Refund[]
+  dispatch     Dispatch?
+  reservations InventoryReservation[]
+  ledgerEntries LedgerEntry[]
+}
+
+model OrderItem {
+  id         String @id @default(cuid())
+  orderId    String
+  skuId      String
+  productName String
+  skuName    String
+  unitPriceCents Int
+  qty        Int
+  totalCents Int
+
+  order Order @relation(fields: [orderId], references: [id])
+  sku   Sku   @relation(fields: [skuId], references: [id])
+}
+
+model Payment {
+  id          String          @id @default(cuid())
+  orderId     String          @unique
+  provider    PaymentProvider
+  amountCents Int
+  status      PaymentStatus   @default(PENDING)
+  providerRef String?
+  paidAt      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Refund {
+  id          String       @id @default(cuid())
+  orderId     String
+  amountCents Int
+  status      RefundStatus @default(PENDING)
+  reason      String?
+  refundedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Rider {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  campusId  String
+  name      String
+  phone     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  campus Campus @relation(fields: [campusId], references: [id])
+  duties RiderDuty[]
+}
+
+model RiderDuty {
+  id        String   @id @default(cuid())
+  riderId   String
+  date      DateTime @db.Date
+  startTime String
+  endTime   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  rider Rider @relation(fields: [riderId], references: [id])
+
+  @@unique([riderId, date])
+}
+
+model Dispatch {
+  id          String    @id @default(cuid())
+  orderId     String    @unique
+  riderId     String?
+  assignedBy  String?
+  assignedAt  DateTime?
+  acceptedAt  DateTime?
+  arrivedAt   DateTime?
+  pickedUpAt  DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+  rider User? @relation("RiderDispatches", fields: [riderId], references: [id])
+}
+
+model LedgerEntry {
+  id          String          @id @default(cuid())
+  entryNo     String          @unique
+  type        LedgerEntryType
+  orderId     String?
+  userId      String?
+  merchantId  String?
+  amountCents Int
+  balanceAfter Int?
+  memo        String?
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+
+  order Order? @relation(fields: [orderId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@index([createdAt])
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  type        String
+  payload     Json
+  status      JobStatus @default(PENDING)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  runAt       DateTime  @default(now())
+  lockedAt    DateTime?
+  lockedBy    String?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, runAt])
+}
+
+model OutboxMessage {
+  id          String       @id @default(cuid())
+  eventType   String
+  payload     Json
+  status      OutboxStatus @default(PENDING)
+  attempts    Int          @default(0)
+  lockedAt    DateTime?
+  lockedBy    String?
+  processedAt DateTime?
+  lastError   String?
+  createdAt   DateTime     @default(now())
+
+  @@index([status, createdAt])
+}

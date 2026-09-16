@@ -1,0 +1,26 @@
+{
+  "name": "校园外卖",
+  "appid": "__UNI__CAMPUSFOOD",
+  "description": "校园外卖 MVP 小程序",
+  "versionName": "0.1.0",
+  "versionCode": "1",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "wxc000000000000000",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "enhance": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "获取位置用于配送地址"
+      }
+    },
+    "requiredPrivateInfos": ["getLocation", "chooseLocation"]
+  },
+  "vueVersion": "3"
+}

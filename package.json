@@ -1,0 +1,31 @@
+{
+  "name": "campus-food",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @campus-food/api --filter @campus-food/worker --filter @campus-food/ops-web dev",
+    "dev:api": "pnpm --filter @campus-food/api dev",
+    "dev:worker": "pnpm --filter @campus-food/worker dev",
+    "dev:ops": "pnpm --filter @campus-food/ops-web dev",
+    "build": "pnpm --filter @campus-food/domain build && pnpm -r --filter !@campus-food/domain --if-present build",
+    "typecheck": "pnpm --filter @campus-food/domain build && pnpm --filter @campus-food/domain typecheck && pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "db:generate": "prisma generate --schema=prisma/schema.prisma",
+    "db:migrate": "pnpm --filter @campus-food/api prisma:migrate",
+    "db:deploy": "pnpm --filter @campus-food/api prisma:deploy",
+    "db:seed": "pnpm --filter @campus-food/api prisma:seed"
+  },
+  "devDependencies": {
+    "prisma": "6.19.3",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3"
+  }
+}

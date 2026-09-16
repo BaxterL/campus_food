@@ -1,0 +1,19 @@
+{
+  "name": "@campus-food/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./env": "./src/env.ts"
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.7.3"
+  }
+}

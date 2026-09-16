@@ -1,0 +1,26 @@
+{
+  "pages": [
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "校园外卖" } },
+    { "path": "pages/student/login", "style": { "navigationBarTitleText": "登录" } },
+    { "path": "pages/student/shops/index", "style": { "navigationBarTitleText": "店铺" } },
+    { "path": "pages/student/shops/detail", "style": { "navigationBarTitleText": "菜单" } },
+    { "path": "pages/student/cart/index", "style": { "navigationBarTitleText": "购物车" } },
+    { "path": "pages/student/address/list", "style": { "navigationBarTitleText": "收货地址" } },
+    { "path": "pages/student/address/edit", "style": { "navigationBarTitleText": "编辑地址" } },
+    { "path": "pages/student/order/confirm", "style": { "navigationBarTitleText": "确认订单" } },
+    { "path": "pages/student/order/list", "style": { "navigationBarTitleText": "我的订单" } },
+    { "path": "pages/student/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/merchant/home", "style": { "navigationBarTitleText": "商家工作台" } },
+    { "path": "pages/merchant/orders", "style": { "navigationBarTitleText": "商家订单" } },
+    { "path": "pages/merchant/products", "style": { "navigationBarTitleText": "商品管理" } },
+    { "path": "pages/rider/home", "style": { "navigationBarTitleText": "骑手工作台" } },
+    { "path": "pages/rider/tasks", "style": { "navigationBarTitleText": "配送任务" } },
+    { "path": "pages/rider/task-detail", "style": { "navigationBarTitleText": "任务详情" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "校园外卖",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f5f5"
+  }
+}
