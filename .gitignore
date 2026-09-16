@@ -1,0 +1,15 @@
+﻿node_modules/
+dist/
+unpackage/
+target/
+.idea/
+*.iml
+.DS_Store
+.env.local
+admin/.env.local
+*.log
+.vscode/
+admin/dist/
+miniapp/unpackage/
+backend/**/target/
+data/files/

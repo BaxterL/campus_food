@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>校园外卖 · 订单详情 — P0</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="3" height="5" rx="0.5"/><rect x="5.5" y="7" width="3" height="8" rx="0.5"/><rect x="10" y="4" width="3" height="11" rx="0.5"/></svg>
+            <svg viewBox="0 0 24 12" width="24" height="12" fill="currentColor"><rect x="0" y="1" width="20" height="10" rx="2" stroke="currentColor" fill="none" stroke-width="1.2"/><rect x="2" y="3" width="14" height="6" rx="1"/><rect x="21" y="3.5" width="2" height="5" rx="0.5"/></svg>
+          </div>
+        </div>
+
+        <header class="app-header row">
+          <a class="back" href="p0-home.html" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </a>
+          <div>
+            <h1 style="font-size:16px;">订单详情</h1>
+            <p class="sub">订单号 CW202609161204</p>
+          </div>
+        </header>
+
+        <main class="content">
+          <div class="panel" style="text-align:center;padding-top:20px;">
+            <span class="status-pill"><span class="dot"></span>待取餐</span>
+            <p style="font-size:13px;color:var(--text-muted);margin-top:12px;">商家备餐中 · 预计 12:05 可取</p>
+          </div>
+
+          <div class="panel pickup-code-block">
+            <div class="pickup-label">取餐码</div>
+            <div class="pickup-code">A 084</div>
+            <div class="qr-placeholder" aria-label="取餐二维码占位">QR</div>
+            <p style="font-size:12px;color:var(--text-faint);">向商家出示取餐码或扫码核销</p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">门店</div>
+            <div style="font-size:16px;font-weight:600;margin-bottom:4px;">一食堂·麻辣香锅</div>
+            <p style="font-size:13px;color:var(--text-muted);">一食堂一层东侧窗口 · 营业至 20:30</p>
+            <a class="nav-link" href="#" onclick="return false;">
+              导航到店
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </a>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">商品明细</div>
+            <div class="line-item">
+              <div>
+                <div class="line-name">经典麻辣香锅（中份）</div>
+                <div class="line-qty">×1 · 微辣</div>
+              </div>
+              <div class="line-price">¥28</div>
+            </div>
+            <div class="line-item">
+              <div>
+                <div class="line-name">米饭</div>
+                <div class="line-qty">×1</div>
+              </div>
+              <div class="line-price">¥2</div>
+            </div>
+            <div class="summary-row total" style="border-top:1px solid var(--border-hairline);margin-top:8px;padding-top:12px;">
+              <span>实付</span><span>¥30</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="summary-row"><span>取餐方式</span><span>自取</span></div>
+            <div class="summary-row"><span>取餐时间</span><span>尽快（约 20 分钟）</span></div>
+            <div class="summary-row"><span>备注</span><span>无</span></div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <nav class="demo-nav" aria-label="Demo screens">
+    <a href="p0-home.html">店列表</a>
+    <a href="p0-empty-shops.html">空店</a>
+    <a href="p0-menu.html">菜单</a>
+    <a href="p0-empty-menu.html">空菜单</a>
+    <a href="p0-confirm.html">确认单</a>
+    <a href="p0-pay-processing.html">支付中</a>
+    <a href="p0-pay-success.html">支付成功</a>
+    <a href="p0-pay-fail.html">支付失败</a>
+    <a href="p0-order.html" class="current">订单</a>
+    <a href="p0-empty-orders.html">空订单</a>
+    <a href="p0-merchant-verify.html">核销</a>
+  </nav>
+</body>
+</html>

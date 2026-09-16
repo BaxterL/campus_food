@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>校园外卖 · 商家核销 — P0</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="3" height="5" rx="0.5"/><rect x="5.5" y="7" width="3" height="8" rx="0.5"/><rect x="10" y="4" width="3" height="11" rx="0.5"/></svg>
+            <svg viewBox="0 0 24 12" width="24" height="12" fill="currentColor"><rect x="0" y="1" width="20" height="10" rx="2" stroke="currentColor" fill="none" stroke-width="1.2"/><rect x="2" y="3" width="14" height="6" rx="1"/><rect x="21" y="3.5" width="2" height="5" rx="0.5"/></svg>
+          </div>
+        </div>
+
+        <header class="app-header row">
+          <div style="width:32px;"></div>
+          <div style="flex:1;text-align:center;">
+            <h1 style="font-size:16px;">商家核销</h1>
+            <p class="sub">一食堂·麻辣香锅</p>
+          </div>
+          <div style="width:32px;"></div>
+        </header>
+
+        <main class="content pb-cta" id="verify-state">
+          <div class="verify-hero">
+            <h2>核销取餐</h2>
+            <p>扫描学生取餐码，或手动输入</p>
+          </div>
+
+          <div class="scan-box">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/>
+                <rect x="8" y="8" width="8" height="8" rx="1"/>
+              </svg>
+            </div>
+            <div class="title">扫码核销</div>
+            <div class="hint">点击唤起摄像头（静态 mock）</div>
+          </div>
+
+          <div class="divider-or">或手动输入</div>
+
+          <div class="field">
+            <label for="pickup-code">取餐码</label>
+            <input class="code-input" id="pickup-code" type="text" placeholder="例如 A084" value="A084" maxlength="8" />
+          </div>
+
+          <div class="panel" style="margin-top:16px;">
+            <div class="panel-title">待核销订单预览</div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:4px;">A 084 · 经典麻辣香锅 ×1 + 米饭</div>
+            <p style="font-size:12px;color:var(--text-muted);">实付 ¥30 · 尽快取餐</p>
+          </div>
+        </main>
+
+        <div class="content" id="success-state">
+          <div class="panel success-card">
+            <div class="success-icon">✓</div>
+            <h3>已取餐</h3>
+            <p>取餐码 A 084 核销成功</p>
+            <p style="margin-top:8px;font-size:12px;color:var(--text-faint);">订单已完成 · 可继续下一单</p>
+          </div>
+          <div class="panel">
+            <div class="summary-row"><span>门店</span><span>一食堂·麻辣香锅</span></div>
+            <div class="summary-row"><span>商品</span><span>香锅 ×1 + 米饭</span></div>
+            <div class="summary-row"><span>核销时间</span><span>12:04</span></div>
+          </div>
+          <button type="button" class="btn-primary block" style="margin-top:8px;" onclick="document.body.classList.remove('show-success')">继续核销</button>
+        </div>
+
+        <div class="bottom-cta" id="verify-cta">
+          <button type="button" class="btn-primary block lg" onclick="document.body.classList.add('show-success')">已取餐</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Hide bottom CTA when showing success
+    const obs = new MutationObserver(() => {
+      const cta = document.getElementById('verify-cta');
+      if (cta) cta.style.display = document.body.classList.contains('show-success') ? 'none' : 'flex';
+    });
+    obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  </script>
+
+  <nav class="demo-nav" aria-label="Demo screens">
+    <a href="p0-home.html">店列表</a>
+    <a href="p0-empty-shops.html">空店</a>
+    <a href="p0-menu.html">菜单</a>
+    <a href="p0-empty-menu.html">空菜单</a>
+    <a href="p0-confirm.html">确认单</a>
+    <a href="p0-pay-processing.html">支付中</a>
+    <a href="p0-pay-success.html">支付成功</a>
+    <a href="p0-pay-fail.html">支付失败</a>
+    <a href="p0-order.html">订单</a>
+    <a href="p0-empty-orders.html">空订单</a>
+    <a href="p0-merchant-verify.html" class="current">核销</a>
+  </nav>
+</body>
+</html>

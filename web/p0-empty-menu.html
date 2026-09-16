@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>校园外卖 · 菜单空 — P0</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="3" height="5" rx="0.5"/><rect x="5.5" y="7" width="3" height="8" rx="0.5"/><rect x="10" y="4" width="3" height="11" rx="0.5"/></svg>
+            <svg viewBox="0 0 24 12" width="24" height="12" fill="currentColor"><rect x="0" y="1" width="20" height="10" rx="2" stroke="currentColor" fill="none" stroke-width="1.2"/><rect x="2" y="3" width="14" height="6" rx="1"/><rect x="21" y="3.5" width="2" height="5" rx="0.5"/></svg>
+          </div>
+        </div>
+
+        <header class="app-header row">
+          <a class="back" href="p0-home.html" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </a>
+          <div>
+            <h1 style="font-size:16px;">校门口鸡公煲</h1>
+          </div>
+        </header>
+
+        <div class="shop-hero">
+          <div class="name">校门口鸡公煲</div>
+          <div class="meta">
+            <span class="tag">自取</span>
+            <span class="tag resting">休息中</span>
+            <span>营业 11:00–21:00</span>
+            <span>· 步行约 350m</span>
+          </div>
+        </div>
+
+        <main class="content" style="flex:1;">
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M6 7l1 12h10l1-12M9 7V5a3 3 0 016 0v2"/></svg>
+            </div>
+            <h2>暂无菜品</h2>
+            <p>店铺休息中，菜单稍后上线，欢迎晚点再来</p>
+            <a class="btn-secondary" href="p0-home.html">返回店列表</a>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <nav class="demo-nav" aria-label="Demo screens">
+    <a href="p0-home.html">店列表</a>
+    <a href="p0-empty-shops.html">空店</a>
+    <a href="p0-menu.html">菜单</a>
+    <a href="p0-empty-menu.html" class="current">空菜单</a>
+    <a href="p0-confirm.html">确认单</a>
+    <a href="p0-pay-processing.html">支付中</a>
+    <a href="p0-pay-success.html">支付成功</a>
+    <a href="p0-pay-fail.html">支付失败</a>
+    <a href="p0-order.html">订单</a>
+    <a href="p0-empty-orders.html">空订单</a>
+    <a href="p0-merchant-verify.html">核销</a>
+  </nav>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>校园外卖 · 菜单 — P0</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="3" height="5" rx="0.5"/><rect x="5.5" y="7" width="3" height="8" rx="0.5"/><rect x="10" y="4" width="3" height="11" rx="0.5"/></svg>
+            <svg viewBox="0 0 24 12" width="24" height="12" fill="currentColor"><rect x="0" y="1" width="20" height="10" rx="2" stroke="currentColor" fill="none" stroke-width="1.2"/><rect x="2" y="3" width="14" height="6" rx="1"/><rect x="21" y="3.5" width="2" height="5" rx="0.5"/></svg>
+          </div>
+        </div>
+
+        <header class="app-header row">
+          <a class="back" href="p0-home.html" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </a>
+          <div>
+            <h1 style="font-size:16px;">一食堂·麻辣香锅</h1>
+          </div>
+        </header>
+
+        <div class="shop-hero">
+          <div class="name">一食堂·麻辣香锅</div>
+          <div class="meta">
+            <span class="tag">自取</span>
+            <span>营业中 · 10:00–20:30</span>
+            <span>· 起送 ¥15</span>
+            <span>· 步行 3 分钟</span>
+          </div>
+        </div>
+
+        <div class="menu-layout">
+          <nav class="cat-rail" aria-label="分类">
+            <a class="cat-item active" href="#">热销</a>
+            <a class="cat-item" href="#">香锅</a>
+            <a class="cat-item" href="#">主食</a>
+            <a class="cat-item" href="#">饮品</a>
+            <a class="cat-item" href="#">小食</a>
+          </nav>
+
+          <div class="menu-list">
+            <h2 class="cat-title">热销</h2>
+
+            <div class="dish-row">
+              <div class="dish-img" aria-hidden="true">🥘</div>
+              <div class="dish-info">
+                <div class="dish-name">经典麻辣香锅（中份）</div>
+                <div class="dish-desc">自选 12 种食材 · 微辣默认</div>
+                <div class="dish-bottom">
+                  <div class="price"><span class="yen">¥</span>28</div>
+                  <button class="btn-add" type="button" aria-label="加入购物车">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="dish-row">
+              <div class="dish-img" aria-hidden="true">🥬</div>
+              <div class="dish-info">
+                <div class="dish-name">清汤锅底香锅</div>
+                <div class="dish-desc">不辣 · 适合搭配小食</div>
+                <div class="dish-bottom">
+                  <div class="price"><span class="yen">¥</span>26</div>
+                  <button class="btn-add" type="button" aria-label="加入购物车">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="dish-row">
+              <div class="dish-img" aria-hidden="true">🍚</div>
+              <div class="dish-info">
+                <div class="dish-name">米饭</div>
+                <div class="dish-desc">一碗</div>
+                <div class="dish-bottom">
+                  <div class="price"><span class="yen">¥</span>2</div>
+                  <button class="btn-add" type="button" aria-label="加入购物车">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="dish-row">
+              <div class="dish-img" aria-hidden="true">🥤</div>
+              <div class="dish-info">
+                <div class="dish-name">冰镇酸梅汤</div>
+                <div class="dish-desc">大杯 · 解辣</div>
+                <div class="dish-bottom">
+                  <div class="price"><span class="yen">¥</span>6</div>
+                  <button class="btn-add" type="button" aria-label="加入购物车">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cart-bar">
+          <div class="cart-badge">
+            🛒
+            <span class="cart-count">2</span>
+          </div>
+          <div class="cart-info">
+            <div class="cart-total">¥30</div>
+            <div class="cart-hint">已选 2 件 · 自取</div>
+          </div>
+          <a class="cart-cta" href="p0-confirm.html">去结算</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="demo-nav" aria-label="Demo screens">
+    <a href="p0-home.html">店列表</a>
+    <a href="p0-empty-shops.html">空店</a>
+    <a href="p0-menu.html" class="current">菜单</a>
+    <a href="p0-empty-menu.html">空菜单</a>
+    <a href="p0-confirm.html">确认单</a>
+    <a href="p0-pay-processing.html">支付中</a>
+    <a href="p0-pay-success.html">支付成功</a>
+    <a href="p0-pay-fail.html">支付失败</a>
+    <a href="p0-order.html">订单</a>
+    <a href="p0-empty-orders.html">空订单</a>
+    <a href="p0-merchant-verify.html">核销</a>
+  </nav>
+</body>
+</html>

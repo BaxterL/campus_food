@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>校园外卖 · 确认单 — P0</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="3" height="5" rx="0.5"/><rect x="5.5" y="7" width="3" height="8" rx="0.5"/><rect x="10" y="4" width="3" height="11" rx="0.5"/></svg>
+            <svg viewBox="0 0 24 12" width="24" height="12" fill="currentColor"><rect x="0" y="1" width="20" height="10" rx="2" stroke="currentColor" fill="none" stroke-width="1.2"/><rect x="2" y="3" width="14" height="6" rx="1"/><rect x="21" y="3.5" width="2" height="5" rx="0.5"/></svg>
+          </div>
+        </div>
+
+        <header class="app-header row">
+          <a class="back" href="p0-menu.html" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </a>
+          <div>
+            <h1 style="font-size:16px;">确认订单</h1>
+            <p class="sub">仅支持自取</p>
+          </div>
+        </header>
+
+        <main class="content pb-cta">
+          <div class="panel">
+            <div class="panel-title">取餐方式</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="tag">自取</span>
+              <span style="font-size:14px;font-weight:500;">到店自取</span>
+            </div>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">一食堂·麻辣香锅 · 一食堂一层东侧窗口</p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">取餐时间</div>
+            <div class="chips">
+              <button type="button" class="chip active">尽快（约 20 分钟）</button>
+              <button type="button" class="chip">12:00</button>
+              <button type="button" class="chip">12:30</button>
+              <button type="button" class="chip">13:00</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">商品</div>
+            <div class="line-item">
+              <div>
+                <div class="line-name">经典麻辣香锅（中份）</div>
+                <div class="line-qty">×1 · 微辣</div>
+              </div>
+              <div class="line-price">¥28</div>
+            </div>
+            <div class="line-item">
+              <div>
+                <div class="line-name">米饭</div>
+                <div class="line-qty">×1</div>
+              </div>
+              <div class="line-price">¥2</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="field">
+              <label for="note">备注</label>
+              <div class="field-control muted" id="note">选填：少油、不要香菜…</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="summary-row"><span>商品小计</span><span>¥30</span></div>
+            <div class="summary-row"><span>打包费</span><span>¥0</span></div>
+            <div class="summary-row"><span>配送费</span><span>自取免配送</span></div>
+            <div class="summary-row total"><span>合计</span><span>¥30</span></div>
+          </div>
+        </main>
+
+        <div class="bottom-cta">
+          <div class="sum">
+            <div class="label">应付</div>
+            <div class="amount">¥30</div>
+          </div>
+          <a class="btn-primary" href="p0-pay-processing.html">去支付</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="demo-nav" aria-label="Demo screens">
+    <a href="p0-home.html">店列表</a>
+    <a href="p0-empty-shops.html">空店</a>
+    <a href="p0-menu.html">菜单</a>
+    <a href="p0-empty-menu.html">空菜单</a>
+    <a href="p0-confirm.html" class="current">确认单</a>
+    <a href="p0-pay-processing.html">支付中</a>
+    <a href="p0-pay-success.html">支付成功</a>
+    <a href="p0-pay-fail.html">支付失败</a>
+    <a href="p0-order.html">订单</a>
+    <a href="p0-empty-orders.html">空订单</a>
+    <a href="p0-merchant-verify.html">核销</a>
+  </nav>
+</body>
+</html>
