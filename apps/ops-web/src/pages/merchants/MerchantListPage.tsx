@@ -209,7 +209,6 @@ function MerchantFormModal({
       contactName: '',
       contactPhone: '',
       address: '',
-      campusId: 'campus-001',
     },
   });
 
@@ -220,7 +219,6 @@ function MerchantFormModal({
         contactName: initial.contactName,
         contactPhone: initial.contactPhone,
         address: initial.address,
-        campusId: initial.campusId,
         licenseNo: initial.licenseNo,
         remark: initial.remark,
       });
@@ -230,7 +228,6 @@ function MerchantFormModal({
         contactName: '',
         contactPhone: '',
         address: '',
-        campusId: 'campus-001',
       });
     }
   };
@@ -265,13 +262,6 @@ function MerchantFormModal({
         </Form.Item>
         <Form.Item label="地址" required>
           <Controller name="address" control={control} render={({ field }) => <Input {...field} />} />
-        </Form.Item>
-        <Form.Item label="校区 ID">
-          <Controller
-            name="campusId"
-            control={control}
-            render={({ field }) => <Input {...field} />}
-          />
         </Form.Item>
         <Form.Item label="执照编号">
           <Controller

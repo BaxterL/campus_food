@@ -4,6 +4,7 @@
     <view v-else-if="products.length === 0" class="empty">暂无商品</view>
     <view v-else>
       <view v-for="p in products" :key="p.id" class="card row-between">
+        <ProductThumb :url="p.imageUrl" :name="p.name" size="sm" />
         <view>
           <text class="name">{{ p.name }}</text>
           <text class="muted">{{ formatCents(p.priceCents) }}</text>
@@ -22,14 +23,17 @@
 <script setup lang="ts">
 import { onShow } from '@dcloudio/uni-app';
 import { ref } from 'vue';
+import ProductThumb from '@/components/ProductThumb.vue';
 import { merchantApi } from '@/services/api';
 import type { Product } from '@/services/api/types';
 import { formatCents } from '@/utils/format';
+import { requireRole } from '@/utils/guard';
 
 const products = ref<Product[]>([]);
 const loading = ref(false);
 
 onShow(() => {
+  if (!requireRole('merchant')) return;
   loadProducts();
 });
 
@@ -61,5 +65,14 @@ async function toggleSoldOut(p: Product, e: { detail: { value: boolean } }) {
   display: block;
   font-size: 30rpx;
   font-weight: 600;
+}
+
+.thumb {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 12rpx;
+  margin-right: 16rpx;
+  background: #f2f2f2;
+  flex-shrink: 0;
 }
 </style>

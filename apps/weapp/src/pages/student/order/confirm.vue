@@ -1,12 +1,32 @@
 <template>
   <view class="container">
-    <view class="card" @tap="chooseAddress">
+    <view class="card">
+      <text class="label">履约方式</text>
+      <view class="mode-row">
+        <view class="mode" :class="{ active: fulfillment === 'PICKUP' }" @tap="fulfillment = 'PICKUP'">
+          到店自取
+        </view>
+        <view
+          class="mode"
+          :class="{ active: fulfillment === 'RIDER_DELIVERY' }"
+          @tap="fulfillment = 'RIDER_DELIVERY'"
+        >
+          骑手配送
+        </view>
+      </view>
+    </view>
+
+    <view v-if="fulfillment === 'RIDER_DELIVERY'" class="card" @tap="chooseAddress">
       <text class="label">收货地址</text>
       <text v-if="selectedAddress">
         {{ selectedAddress.buildingName }} {{ selectedAddress.room }} ·
         {{ selectedAddress.contactName }} {{ selectedAddress.contactPhone }}
       </text>
       <text v-else class="muted">请选择地址</text>
+    </view>
+    <view v-else class="card">
+      <text class="label">取餐</text>
+      <text class="muted">支付后商家出餐，到店出示取餐码即可，无需骑手</text>
     </view>
 
     <view class="card">
@@ -54,18 +74,21 @@
 import { onShow, onUnload } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 import { studentApi } from '@/services/api';
-import type { Address, PaymentProvider } from '@/services/api/types';
+import type { Address, FulfillmentType, PaymentProvider } from '@/services/api/types';
 import { payOrder } from '@/services/payment';
 import { useCartStore } from '@/stores/cart';
 import { formatCents } from '@/utils/format';
+import { requireLogin } from '@/utils/guard';
 
 const cart = useCartStore();
 const selectedAddress = ref<Address | null>(null);
+const fulfillment = ref<FulfillmentType>('PICKUP');
 const provider = ref<PaymentProvider>('MOCK');
 const remark = ref('');
 const submitting = ref(false);
 
 onShow(() => {
+  if (!requireLogin()) return;
   if (cart.isEmpty) {
     uni.showToast({ title: '购物车为空', icon: 'none' });
     setTimeout(() => uni.navigateBack(), 500);
@@ -92,7 +115,7 @@ function onProviderChange(e: { detail: { value: string } }) {
 const checkoutKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 async function submitOrder() {
-  if (!selectedAddress.value) {
+  if (fulfillment.value === 'RIDER_DELIVERY' && !selectedAddress.value) {
     uni.showToast({ title: '请选择地址', icon: 'none' });
     return;
   }
@@ -102,7 +125,8 @@ async function submitOrder() {
   try {
     const order = await studentApi.createOrder({
       merchantId: cart.merchantId,
-      addressId: selectedAddress.value.id,
+      fulfillmentType: fulfillment.value,
+      addressId: fulfillment.value === 'RIDER_DELIVERY' ? selectedAddress.value?.id : undefined,
       items: cart.items.map((i) => ({
         productId: i.productId,
         skuId: i.skuId,
@@ -134,6 +158,24 @@ async function submitOrder() {
   display: block;
   font-weight: 600;
   margin-bottom: 12rpx;
+}
+
+.mode-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.mode {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border: 1rpx solid #ddd;
+  border-radius: 12rpx;
+}
+
+.mode.active {
+  border-color: #111;
+  font-weight: 600;
 }
 
 .item-row {

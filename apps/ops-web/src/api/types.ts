@@ -48,6 +48,7 @@ export interface OverviewStats {
   pendingDispatch: number;
   activeRiders: number;
   refundExceptions: number;
+  scope?: 'merchant' | 'platform';
 }
 
 // ── Merchant ──────────────────────────────────────────
@@ -75,7 +76,6 @@ export interface MerchantCreateInput {
   contactName: string;
   contactPhone: string;
   address: string;
-  campusId: string;
   licenseNo?: string;
   remark?: string;
 }
@@ -102,6 +102,8 @@ export interface Product {
   merchantId: string;
   merchantName: string;
   name: string;
+  productName?: string;
+  imageUrl?: string;
   categoryName: string;
   skuCode: string;
   priceCents: number;
@@ -109,6 +111,24 @@ export interface Product {
   reservedStock: number;
   isOnSale: boolean;
   updatedAt: string;
+}
+
+export interface ProductCreateInput {
+  merchantId?: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  categoryId?: string;
+  categoryName?: string;
+  skuName?: string;
+  priceCents: number;
+  stock?: number;
+}
+
+export interface CatalogCategory {
+  id: string;
+  merchantId: string;
+  name: string;
 }
 
 export interface ProductInventoryUpdate {
@@ -150,6 +170,7 @@ export interface Order {
   orderNo: string;
   merchantId: string;
   merchantName: string;
+  fulfillmentType?: 'PICKUP' | 'MERCHANT_DELIVERY' | 'RIDER_DELIVERY';
   status: OrderStatus;
   totalCents: number;
   pickupCode?: string;
@@ -217,14 +238,12 @@ export interface RiderWhitelistEntry {
 export interface RiderWhitelistCreateInput {
   name: string;
   phone: string;
-  campusId: string;
 }
 
 export interface RiderWhitelistUpdateInput {
   name?: string;
   phone?: string;
   isActive?: boolean;
-  onDuty?: boolean;
 }
 
 // ── Finance ─────────────────────────────────────────

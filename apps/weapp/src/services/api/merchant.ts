@@ -26,6 +26,10 @@ export const merchantApi = {
     return http.post<Order>(`/merchant/orders/${orderId}/ready`);
   },
 
+  verifyPickup(orderId: string, pickupCode: string) {
+    return http.post<Order>(`/merchant/orders/${orderId}/verify-pickup`, { pickupCode });
+  },
+
   listProducts() {
     return http.get<Product[]>('/merchant/products');
   },

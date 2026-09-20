@@ -1,28 +1,37 @@
 <template>
   <view class="container">
-    <view class="toolbar row-between">
-      <text class="muted">选择店铺</text>
-      <text class="link" @tap="goOrders">我的订单</text>
+    <view class="hero card">
+      <text class="kicker">今晚想吃点什么</text>
+      <text class="title">校园外卖</text>
+      <view class="row-between">
+        <text class="muted">邀请制店铺 · 楼栋配送</text>
+        <text class="link" @tap="goOrders">我的订单</text>
+      </view>
     </view>
 
-    <view v-if="loading" class="empty">加载中...</view>
-    <view v-else-if="merchants.length === 0" class="empty">暂无店铺</view>
+    <view v-if="loading" class="empty">店铺加载中...</view>
+    <view v-else-if="merchants.length === 0" class="empty">暂无营业店铺</view>
     <view v-else>
       <view
         v-for="item in merchants"
         :key="item.id"
-        class="card shop-card"
+        class="shop card"
         @tap="goDetail(item.id)"
       >
-        <view class="row-between">
-          <text class="shop-name">{{ item.name }}</text>
-          <text :class="['tag', item.isOpen ? 'tag-open' : 'tag-closed']">
-            {{ item.isOpen ? '营业中' : '休息中' }}
-          </text>
+        <view class="cover">
+          <text class="cover-emoji">🍜</text>
         </view>
-        <text class="muted">{{ item.address }}</text>
-        <text v-if="item.notice" class="notice">{{ item.notice }}</text>
-        <text class="muted">起送 {{ formatCents(item.minOrderCents) }}</text>
+        <view class="body">
+          <view class="row-between">
+            <text class="shop-name">{{ item.name }}</text>
+            <text :class="['tag', item.isOpen ? 'tag-open' : 'tag-closed']">
+              {{ item.isOpen ? '营业中' : '休息中' }}
+            </text>
+          </view>
+          <text class="muted">{{ item.address }}</text>
+          <text v-if="item.notice" class="notice">{{ item.notice }}</text>
+          <text class="meta">起送 {{ formatCents(item.minOrderCents) }}</text>
+        </view>
       </view>
     </view>
   </view>
@@ -69,25 +78,67 @@ function goOrders() {
 </script>
 
 <style scoped lang="scss">
-.toolbar {
-  margin-bottom: 16rpx;
+.kicker {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(41, 19, 52, 0.55);
+  letter-spacing: 2rpx;
+}
+
+.title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 800;
+  margin: 8rpx 0 16rpx;
 }
 
 .link {
-  color: #07c160;
+  color: #0f766e;
+  font-weight: 700;
 }
 
-.shop-card {
-  .shop-name {
-    font-size: 32rpx;
-    font-weight: 600;
-  }
+.shop {
+  display: flex;
+  gap: 20rpx;
+  padding: 0;
+  overflow: hidden;
+}
 
-  .notice {
-    display: block;
-    margin: 8rpx 0;
-    color: #ad6800;
-    font-size: 24rpx;
-  }
+.cover {
+  width: 168rpx;
+  min-height: 168rpx;
+  background: linear-gradient(160deg, #65c3c8, #eeaf3a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-emoji {
+  font-size: 64rpx;
+}
+
+.body {
+  flex: 1;
+  padding: 24rpx 24rpx 24rpx 0;
+}
+
+.shop-name {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.notice,
+.meta {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+}
+
+.notice {
+  color: #9a3412;
+}
+
+.meta {
+  color: rgba(41, 19, 52, 0.55);
 }
 </style>

@@ -6,6 +6,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { RequirePermission } from '../common/decorators/require-permission.decorator.js';
 import { RequestContext } from '../common/request-context.js';
 import { CatalogService } from '../catalog/catalog.service.js';
+import { VerifyPickupCodeDto } from '../order/order.dto.js';
 import { OrderService } from '../order/order.service.js';
 import { MerchantService } from './merchant.service.js';
 
@@ -63,6 +64,17 @@ export class MerchantPortalController {
   @RequirePermission(Permission.ORDER_MANAGE_MERCHANT)
   ready(@CurrentUser() user: RequestContext, @Param('id') id: string) {
     return this.orders.merchantReadyFromCurrent(user, id);
+  }
+
+  @Post('orders/:id/verify-pickup')
+  @RequirePermission(Permission.ORDER_MANAGE_MERCHANT)
+  @ApiOperation({ summary: '核销自取取餐码并完结订单' })
+  verifyPickup(
+    @CurrentUser() user: RequestContext,
+    @Param('id') id: string,
+    @Body() dto: VerifyPickupCodeDto,
+  ) {
+    return this.orders.verifyPickup(user, id, dto.pickupCode);
   }
 
   @Get('products')

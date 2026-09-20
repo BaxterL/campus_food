@@ -46,6 +46,21 @@ const saving = ref(false);
 onLoad(async (query) => {
   addressId.value = String(query?.id || '');
   buildings.value = await studentApi.listBuildings().catch(() => []);
+  if (addressId.value) {
+    const addresses = await studentApi.listAddresses().catch(() => []);
+    const existing = addresses.find((item) => item.id === addressId.value);
+    if (!existing) {
+      uni.showToast({ title: '地址不存在', icon: 'none' });
+      return;
+    }
+    selectedBuilding.value =
+      buildings.value.find((item) => item.id === existing.buildingId) ??
+      ({ id: existing.buildingId, name: existing.buildingName } as Building);
+    room.value = existing.room;
+    contactName.value = existing.contactName;
+    contactPhone.value = existing.contactPhone;
+    isDefault.value = existing.isDefault;
+  }
 });
 
 function onBuildingChange(e: { detail: { value: string } }) {

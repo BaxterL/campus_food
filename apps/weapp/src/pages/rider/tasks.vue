@@ -1,7 +1,10 @@
 <template>
   <view class="container">
     <view v-if="loading" class="empty">加载中...</view>
-    <view v-else-if="tasks.length === 0" class="empty">暂无任务</view>
+    <view v-else-if="tasks.length === 0" class="empty">
+      <text>暂无配送任务</text>
+      <text class="muted hint">任务由运营台派单。请先在工作台开启值班，并等待调度员分配订单。</text>
+    </view>
     <view v-else>
       <view v-for="task in tasks" :key="task.id" class="card" @tap="goDetail(task.id)">
         <view class="row-between">
@@ -20,6 +23,7 @@
 import { onShow } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 import { riderApi } from '@/services/api';
+import { requireRole } from '@/utils/guard';
 import type { RiderTask } from '@/services/api/types';
 import { formatCents } from '@/utils/format';
 
@@ -36,6 +40,7 @@ const statusMap: Record<string, string> = {
 };
 
 onShow(() => {
+  if (!requireRole('rider')) return;
   loadTasks();
 });
 
@@ -69,5 +74,11 @@ function goDetail(id: string) {
   margin-top: 8rpx;
   color: #ee0a24;
   font-weight: 600;
+}
+
+.hint {
+  display: block;
+  margin-top: 12rpx;
+  line-height: 1.6;
 }
 </style>

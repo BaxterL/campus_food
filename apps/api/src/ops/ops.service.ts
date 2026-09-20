@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundError } from '@campus-food/domain';
+import { ForbiddenError, NotFoundError, Role } from '@campus-food/domain';
+import { resolveCampusId } from '../common/default-campus.js';
 import {
   DeliveryStatus,
   MerchantStatus,
@@ -9,6 +10,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { RequestContext } from '../common/request-context.js';
+import { saveProductImage } from '../common/uploads.js';
 import { CatalogService } from '../catalog/catalog.service.js';
 import { DeliveryService } from '../delivery/delivery.service.js';
 import { MerchantService } from '../merchant/merchant.service.js';
@@ -70,25 +72,45 @@ export class OpsService {
     return result.me;
   }
 
-  async stats() {
+  private scopedMerchantId(ctx: RequestContext, requested?: string): string | undefined {
+    if (ctx.role === Role.MERCHANT_OWNER || ctx.role === Role.MERCHANT_STAFF) {
+      if (!ctx.merchantId) throw new ForbiddenError('Merchant identity required');
+      if (requested && requested !== ctx.merchantId) {
+        throw new ForbiddenError('Merchant scope mismatch');
+      }
+      return ctx.merchantId;
+    }
+    return requested;
+  }
+
+  async stats(ctx: RequestContext) {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
+    const merchantId = this.scopedMerchantId(ctx);
+    const merchantFilter = merchantId ? { merchantId } : {};
     const [todayOrders, paidToday, pendingMerchants, pendingDispatch, activeRiders, refundExceptions] =
       await Promise.all([
-        this.prisma.order.count({ where: { createdAt: { gte: start } } }),
+        this.prisma.order.count({ where: { createdAt: { gte: start }, ...merchantFilter } }),
         this.prisma.order.aggregate({
-          where: { createdAt: { gte: start }, paymentStatus: 'PAID' },
+          where: { createdAt: { gte: start }, paymentStatus: 'PAID', ...merchantFilter },
           _sum: { totalCents: true },
         }),
-        this.prisma.merchant.count({ where: { status: MerchantStatus.PENDING } }),
+        merchantId
+          ? Promise.resolve(0)
+          : this.prisma.merchant.count({ where: { status: MerchantStatus.PENDING } }),
         this.prisma.order.count({
           where: {
+            ...merchantFilter,
             fulfillmentType: 'RIDER_DELIVERY',
             deliveryStatus: { in: [DeliveryStatus.PENDING_DISPATCH, DeliveryStatus.DISPATCHED] },
           },
         }),
-        this.prisma.rider.count({ where: { active: true } }),
-        this.prisma.refund.count({ where: { status: RefundStatus.FAILED } }),
+        merchantId ? Promise.resolve(0) : this.prisma.rider.count({ where: { active: true } }),
+        merchantId
+          ? this.prisma.refund.count({
+              where: { status: RefundStatus.FAILED, order: { merchantId } },
+            })
+          : this.prisma.refund.count({ where: { status: RefundStatus.FAILED } }),
       ]);
     return {
       todayOrders,
@@ -97,6 +119,7 @@ export class OpsService {
       pendingDispatch,
       activeRiders,
       refundExceptions,
+      scope: merchantId ? 'merchant' : 'platform',
     };
   }
 
@@ -172,11 +195,11 @@ export class OpsService {
     name: string;
     contactPhone?: string;
     address?: string;
-    campusId: string;
+    campusId?: string;
     remark?: string;
   }) {
     return this.merchants.onboard({
-      campusId: input.campusId,
+      campusId: resolveCampusId(input.campusId),
       name: input.name,
       phone: input.contactPhone,
       address: input.address,
@@ -222,11 +245,15 @@ export class OpsService {
     );
   }
 
-  async listProducts(query: { merchantId?: string; page?: number; pageSize?: number }) {
+  async listProducts(
+    ctx: RequestContext,
+    query: { merchantId?: string; page?: number; pageSize?: number },
+  ) {
     const page = query.page ?? 1;
     const pageSize = Math.min(query.pageSize ?? 50, 100);
+    const merchantId = this.scopedMerchantId(ctx, query.merchantId);
     const where: Prisma.SkuWhereInput = {
-      ...(query.merchantId ? { product: { merchantId: query.merchantId } } : {}),
+      ...(merchantId ? { product: { merchantId } } : {}),
     };
     const [skus, total] = await Promise.all([
       this.prisma.sku.findMany({
@@ -239,23 +266,100 @@ export class OpsService {
       this.prisma.sku.count({ where }),
     ]);
     return {
-      items: skus.map((sku) => ({
-        id: sku.id,
-        merchantId: sku.product.merchantId,
-        merchantName: sku.product.merchant.name,
-        name: `${sku.product.name} ${sku.name}`,
-        categoryName: sku.product.category?.name ?? '',
-        skuCode: sku.id.slice(0, 8),
-        priceCents: sku.priceCents,
-        stock: sku.inventory?.totalQty ?? 0,
-        reservedStock: sku.inventory?.reservedQty ?? 0,
-        isOnSale: sku.active && sku.product.active,
-        updatedAt: sku.updatedAt.toISOString(),
-      })),
+      items: skus.map((sku) => this.mapSku(sku)),
       total,
       page,
       pageSize,
     };
+  }
+
+  private mapSku(sku: {
+    id: string;
+    name: string;
+    priceCents: number;
+    active: boolean;
+    updatedAt: Date;
+    inventory: { totalQty: number; reservedQty: number } | null;
+    product: {
+      name: string;
+      imageUrl: string | null;
+      merchantId: string;
+      active?: boolean;
+      merchant: { name: string };
+      category: { name: string } | null;
+    };
+  }) {
+    return {
+      id: sku.id,
+      merchantId: sku.product.merchantId,
+      merchantName: sku.product.merchant.name,
+      name: `${sku.product.name} ${sku.name}`,
+      productName: sku.product.name,
+      imageUrl: sku.product.imageUrl ?? undefined,
+      categoryName: sku.product.category?.name ?? '',
+      skuCode: sku.id.slice(0, 8),
+      priceCents: sku.priceCents,
+      stock: sku.inventory?.totalQty ?? 0,
+      reservedStock: sku.inventory?.reservedQty ?? 0,
+      isOnSale: sku.active && sku.product.active,
+      updatedAt: sku.updatedAt.toISOString(),
+    };
+  }
+
+  async listCategories(ctx: RequestContext, requestedMerchantId?: string) {
+    const merchantId = this.scopedMerchantId(ctx, requestedMerchantId);
+    if (!merchantId) throw new ForbiddenError('Merchant required');
+    return this.catalog.listCategories(merchantId);
+  }
+
+  async createProduct(
+    ctx: RequestContext,
+    input: {
+      merchantId?: string;
+      name: string;
+      description?: string;
+      imageUrl?: string;
+      categoryId?: string;
+      categoryName?: string;
+      skuName?: string;
+      priceCents: number;
+      stock?: number;
+    },
+  ) {
+    const merchantId = this.scopedMerchantId(ctx, input.merchantId);
+    if (!merchantId) throw new ForbiddenError('Merchant required');
+    let categoryId = input.categoryId;
+    if (!categoryId && input.categoryName?.trim()) {
+      const category = await this.catalog.createCategory(ctx, {
+        merchantId,
+        name: input.categoryName.trim(),
+      });
+      categoryId = category.id;
+    }
+    const product = await this.catalog.createProduct(ctx, {
+      merchantId,
+      name: input.name,
+      description: input.description,
+      imageUrl: input.imageUrl,
+      categoryId,
+    });
+    const sku = await this.catalog.createSku(ctx, {
+      productId: product.id,
+      name: input.skuName?.trim() || '默认',
+      priceCents: input.priceCents,
+      initialQty: input.stock ?? 0,
+    });
+    const full = await this.prisma.sku.findUnique({
+      where: { id: sku!.id },
+      include: { inventory: true, product: { include: { merchant: true, category: true } } },
+    });
+    if (!full) throw new NotFoundError('SKU');
+    return this.mapSku(full);
+  }
+
+  async uploadImage(file: Express.Multer.File | undefined) {
+    const imageUrl = await saveProductImage(file);
+    return { imageUrl };
   }
 
   async updateInventory(skuId: string, ctx: RequestContext, input: { stock?: number; isOnSale?: boolean }) {
@@ -270,19 +374,7 @@ export class OpsService {
       include: { inventory: true, product: { include: { merchant: true, category: true } } },
     });
     if (!sku) throw new NotFoundError('SKU');
-    return {
-      id: sku.id,
-      merchantId: sku.product.merchantId,
-      merchantName: sku.product.merchant.name,
-      name: `${sku.product.name} ${sku.name}`,
-      categoryName: sku.product.category?.name ?? '',
-      skuCode: sku.id.slice(0, 8),
-      priceCents: sku.priceCents,
-      stock: sku.inventory?.totalQty ?? 0,
-      reservedStock: sku.inventory?.reservedQty ?? 0,
-      isOnSale: sku.active,
-      updatedAt: sku.updatedAt.toISOString(),
-    };
+    return this.mapSku(sku);
   }
 
   private mapOrder(order: {
@@ -292,6 +384,7 @@ export class OpsService {
     merchant: { name: string };
     status: OrderStatus;
     totalCents: number;
+    fulfillmentType?: string;
     pickupCode: string | null;
     deliveryCode: string | null;
     remark: string | null;
@@ -306,6 +399,7 @@ export class OpsService {
       orderNo: order.orderNo,
       merchantId: order.merchantId,
       merchantName: order.merchant.name,
+      fulfillmentType: order.fulfillmentType,
       status: ORDER_STATUS_MAP[order.status],
       totalCents: order.totalCents,
       pickupCode: order.pickupCode ?? undefined,
@@ -327,13 +421,17 @@ export class OpsService {
     };
   }
 
-  async listOrders(query: { page?: number; pageSize?: number; merchantId?: string; status?: string | string[] }) {
+  async listOrders(
+    ctx: RequestContext,
+    query: { page?: number; pageSize?: number; merchantId?: string; status?: string | string[] },
+  ) {
     const page = query.page ?? 1;
     const pageSize = Math.min(query.pageSize ?? 50, 100);
     const statuses = (Array.isArray(query.status) ? query.status : query.status ? [query.status] : [])
       .flatMap((s) => OPS_STATUS_TO_DOMAIN[s] ?? []);
+    const merchantId = this.scopedMerchantId(ctx, query.merchantId);
     const where: Prisma.OrderWhereInput = {
-      ...(query.merchantId ? { merchantId: query.merchantId } : {}),
+      ...(merchantId ? { merchantId } : {}),
       ...(statuses.length ? { status: { in: statuses } } : {}),
     };
     const [items, total] = await Promise.all([
@@ -354,7 +452,7 @@ export class OpsService {
     return { items: items.map((o) => this.mapOrder(o)), total, page, pageSize };
   }
 
-  async getOrder(id: string) {
+  async getOrder(ctx: RequestContext, id: string) {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
@@ -365,22 +463,31 @@ export class OpsService {
       },
     });
     if (!order) throw new NotFoundError('Order');
+    const merchantId = this.scopedMerchantId(ctx);
+    if (merchantId && order.merchantId !== merchantId) {
+      throw new ForbiddenError('Not your merchant order');
+    }
     return this.mapOrder(order);
   }
 
   async accept(ctx: RequestContext, id: string) {
     await this.orders.merchantAccept(ctx, id);
-    return this.getOrder(id);
+    return this.getOrder(ctx, id);
   }
 
   async reject(ctx: RequestContext, id: string) {
     await this.orders.merchantReject(ctx, id);
-    return this.getOrder(id);
+    return this.getOrder(ctx, id);
   }
 
   async markReady(ctx: RequestContext, id: string) {
     await this.orders.merchantReadyFromCurrent(ctx, id);
-    return this.getOrder(id);
+    return this.getOrder(ctx, id);
+  }
+
+  async verifyPickup(ctx: RequestContext, id: string, pickupCode: string) {
+    await this.orders.verifyPickup(ctx, id, pickupCode);
+    return this.getOrder(ctx, id);
   }
 
   async pendingDispatch() {
@@ -431,12 +538,12 @@ export class OpsService {
 
   async assign(ctx: RequestContext, orderId: string, riderId: string) {
     await this.delivery.assignDispatch(ctx, { orderId, riderId });
-    return this.getOrder(orderId);
+    return this.getOrder(ctx, orderId);
   }
 
   async reassign(ctx: RequestContext, orderId: string, riderId: string) {
     await this.delivery.reassignDispatch(ctx, orderId, { riderId });
-    return this.getOrder(orderId);
+    return this.getOrder(ctx, orderId);
   }
 
   async listWhitelist(campusId?: string) {
@@ -457,7 +564,7 @@ export class OpsService {
     }));
   }
 
-  async createWhitelist(input: { name: string; phone: string; campusId: string; userId?: string }) {
+  async createWhitelist(input: { name: string; phone: string; campusId?: string; userId?: string }) {
     const user =
       (input.userId
         ? await this.prisma.user.findUnique({ where: { id: input.userId } })
@@ -467,7 +574,7 @@ export class OpsService {
       }));
     const rider = await this.delivery.createRider({
       userId: user.id,
-      campusId: input.campusId,
+      campusId: resolveCampusId(input.campusId),
       name: input.name,
       phone: input.phone,
     });

@@ -36,7 +36,15 @@ export class CatalogService {
 
   createProduct(ctx: RequestContext, dto: CreateProductDto) {
     this.assertMerchantAccess(ctx, dto.merchantId);
-    return this.prisma.product.create({ data: dto });
+    return this.prisma.product.create({
+      data: {
+        merchantId: dto.merchantId,
+        name: dto.name,
+        description: dto.description,
+        imageUrl: dto.imageUrl,
+        categoryId: dto.categoryId,
+      },
+    });
   }
 
   async listProducts(merchantId: string) {

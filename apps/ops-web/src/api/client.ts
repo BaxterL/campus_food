@@ -4,7 +4,6 @@ import type {
   AuditLog,
   AuditLogQuery,
   AuthMe,
-  DevIdentity,
   DispatchOrder,
   DispatchRider,
   Merchant,
@@ -17,6 +16,7 @@ import type {
   OverviewStats,
   Paginated,
   Product,
+  ProductCreateInput,
   ProductInventoryUpdate,
   ProductListQuery,
   ReassignDispatchInput,
@@ -43,14 +43,6 @@ export class ApiClientError extends Error {
   }
 }
 
-type IdentityGetter = () => DevIdentity | null;
-
-let identityGetter: IdentityGetter = () => null;
-
-export function setIdentityGetter(getter: IdentityGetter) {
-  identityGetter = getter;
-}
-
 function buildQuery(params?: object): string {
   if (!params) return '';
   const search = new URLSearchParams();
@@ -71,21 +63,14 @@ async function request<T>(
   options: RequestInit & { query?: object } = {},
 ): Promise<T> {
   const { query, ...init } = options;
-  const identity = identityGetter();
   const headers = new Headers(init.headers);
   headers.set('Accept', 'application/json');
   if (init.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
-  if (identity) {
-    headers.set('X-Dev-User-Id', identity.userId);
-    headers.set('X-Dev-Role', identity.role);
-    if (identity.campusId) headers.set('X-Dev-Campus-Id', identity.campusId);
-    if (identity.merchantId) headers.set('X-Dev-Merchant-Id', identity.merchantId);
-  }
 
   const url = `${BASE_URL}${path}${buildQuery(query)}`;
-  const response = await fetch(url, { ...init, headers });
+  const response = await fetch(url, { ...init, headers, credentials: 'include' });
 
   if (response.status < 200 || response.status >= 300) {
     let body: { code?: string; message?: string; requestId?: string; error?: { code?: string; message?: string } } = {};
@@ -109,10 +94,14 @@ async function request<T>(
 
 export const authApi = {
   me: () => request<AuthMe>(API_PATHS.auth.me),
-  devLogin: (identity: DevIdentity) =>
-    request<AuthMe>(API_PATHS.auth.devLogin, {
+  login: (username: string, password: string) =>
+    request<AuthMe>(API_PATHS.auth.login, {
       method: 'POST',
-      body: JSON.stringify(identity),
+      body: JSON.stringify({ username, password }),
+    }),
+  logout: () =>
+    request<{ ok: boolean }>(API_PATHS.auth.logout, {
+      method: 'POST',
     }),
 };
 
@@ -154,6 +143,36 @@ export const merchantApi = {
 export const productApi = {
   list: (query?: ProductListQuery) =>
     request<Paginated<Product>>(API_PATHS.products.list, { query }),
+  create: (input: ProductCreateInput) =>
+    request<Product>(API_PATHS.products.create, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  listCategories: (merchantId?: string) =>
+    request<Array<{ id: string; name: string }>>(API_PATHS.products.categories, {
+      query: { merchantId },
+    }),
+  uploadImage: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await fetch(`${BASE_URL}${API_PATHS.products.upload}`, {
+      method: 'POST',
+      body: form,
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      let body: { message?: string; error?: { message?: string } } = {};
+      try {
+        body = (await response.json()) as typeof body;
+      } catch {
+        body = { message: response.statusText };
+      }
+      throw new ApiClientError(response.status, {
+        message: body.message ?? body.error?.message,
+      });
+    }
+    return (await response.json()) as { imageUrl: string };
+  },
   updateInventory: (id: string, input: ProductInventoryUpdate) =>
     request<Product>(API_PATHS.products.inventory(id), {
       method: 'PATCH',
@@ -179,6 +198,11 @@ export const orderApi = {
     }),
   markReady: (id: string) =>
     request<Order>(API_PATHS.orders.markReady(id), { method: 'POST' }),
+  verifyPickup: (id: string, pickupCode: string) =>
+    request<Order>(API_PATHS.orders.verifyPickup(id), {
+      method: 'POST',
+      body: JSON.stringify({ pickupCode }),
+    }),
 };
 
 // ── Dispatch ────────────────────────────────────────────
@@ -201,8 +225,7 @@ export const dispatchApi = {
 // ── Riders ────────────────────────────────────────────
 
 export const riderApi = {
-  listWhitelist: (query?: { campusId?: string }) =>
-    request<RiderWhitelistEntry[]>(API_PATHS.riders.whitelist, { query }),
+  listWhitelist: () => request<RiderWhitelistEntry[]>(API_PATHS.riders.whitelist),
   createWhitelist: (input: RiderWhitelistCreateInput) =>
     request<RiderWhitelistEntry>(API_PATHS.riders.whitelist, {
       method: 'POST',

@@ -4,8 +4,9 @@ export class CreateRiderDto {
   @IsString()
   userId!: string;
 
+  @IsOptional()
   @IsString()
-  campusId!: string;
+  campusId?: string;
 
   @IsString()
   name!: string;

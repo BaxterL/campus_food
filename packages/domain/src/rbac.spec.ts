@@ -7,8 +7,8 @@ describe('rbac', () => {
     expect(hasPermission(Role.STUDENT, Permission.DISPATCH_MANAGE)).toBe(false);
   });
 
-  it('grants ops dispatch permissions', () => {
-    expect(hasPermission(Role.OPS, Permission.DISPATCH_MANAGE)).toBe(true);
-    expect(hasPermission(Role.OPS, Permission.CATALOG_MANAGE)).toBe(true);
+  it('does not give merchant staff platform ledger access', () => {
+    expect(hasPermission(Role.MERCHANT_STAFF, Permission.LEDGER_READ)).toBe(false);
+    expect(hasPermission(Role.MERCHANT_STAFF, Permission.ORDER_READ_MERCHANT)).toBe(true);
   });
 });

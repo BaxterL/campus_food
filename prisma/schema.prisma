@@ -122,6 +122,33 @@ model User {
   acceptedInvitation StaffInvitation?  @relation("InvitationAcceptor")
   dispatches         Dispatch[]        @relation("RiderDispatches")
   ledgerEntries      LedgerEntry[]
+  opsAccount         OpsAccount?
+  opsSessions        OpsSession[]
+}
+
+model OpsAccount {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model OpsSession {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       UserRole
+  merchantId String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Campus {

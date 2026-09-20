@@ -44,10 +44,6 @@
         </button>
       </view>
 
-      <view v-if="task.pickupCode && task.status !== 'AT_STORE'" class="card">
-        <text class="section">取餐码参考</text>
-        <view class="code-box">{{ task.pickupCode }}</view>
-      </view>
     </view>
   </view>
 </template>
@@ -58,6 +54,7 @@ import { ref } from 'vue';
 import { scanCode } from '@/platform/wechat';
 import { riderApi } from '@/services/api';
 import type { RiderTask } from '@/services/api/types';
+import { requireRole } from '@/utils/guard';
 
 const taskId = ref('');
 const task = ref<RiderTask | null>(null);
@@ -80,6 +77,7 @@ onLoad((query) => {
 });
 
 onShow(() => {
+  if (!requireRole('rider')) return;
   if (taskId.value) loadTask();
 });
 

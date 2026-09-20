@@ -5,7 +5,8 @@
 export const API_PATHS = {
   auth: {
     me: '/ops/auth/me',
-    devLogin: '/ops/auth/dev-login',
+    login: '/ops/auth/login',
+    logout: '/ops/auth/logout',
   },
   overview: {
     stats: '/ops/overview/stats',
@@ -19,7 +20,10 @@ export const API_PATHS = {
   },
   products: {
     list: '/ops/products',
+    create: '/ops/products',
     inventory: (id: string) => `/ops/products/${id}/inventory`,
+    categories: '/ops/categories',
+    upload: '/ops/uploads/image',
   },
   orders: {
     list: '/ops/orders',
@@ -27,6 +31,7 @@ export const API_PATHS = {
     accept: (id: string) => `/ops/orders/${id}/accept`,
     reject: (id: string) => `/ops/orders/${id}/reject`,
     markReady: (id: string) => `/ops/orders/${id}/mark-ready`,
+    verifyPickup: (id: string) => `/ops/orders/${id}/verify-pickup`,
   },
   dispatch: {
     pending: '/ops/dispatch/pending',

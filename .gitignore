@@ -22,3 +22,5 @@ admin/dist/
 miniapp/unpackage/
 backend/**/target/
 data/files/
+data/uploads/
+apps/api/data/

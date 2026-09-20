@@ -11,9 +11,13 @@ export function OverviewPage() {
     refetchInterval: 30_000,
   });
 
+  const isMerchantScope = data?.scope === 'merchant';
+
   return (
     <div>
-      <Typography.Title level={4}>运营概览</Typography.Title>
+      <Typography.Title level={4}>
+        {isMerchantScope ? '门店概览' : '运营概览'}
+      </Typography.Title>
       <AsyncState loading={isLoading} error={error} empty={!data}>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={8}>
@@ -30,34 +34,38 @@ export function OverviewPage() {
               />
             </Card>
           </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Card>
-              <Statistic
-                title="待审核商家"
-                value={data?.pendingMerchants ?? 0}
-                loading={isFetching}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Card>
-              <Statistic title="待派单" value={data?.pendingDispatch ?? 0} loading={isFetching} />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Card>
-              <Statistic title="在岗骑手" value={data?.activeRiders ?? 0} loading={isFetching} />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Card>
-              <Statistic
-                title="退款异常"
-                value={data?.refundExceptions ?? 0}
-                loading={isFetching}
-              />
-            </Card>
-          </Col>
+          {!isMerchantScope && (
+            <>
+              <Col xs={24} sm={12} lg={8}>
+                <Card>
+                  <Statistic
+                    title="待审核商家"
+                    value={data?.pendingMerchants ?? 0}
+                    loading={isFetching}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={8}>
+                <Card>
+                  <Statistic title="待派单" value={data?.pendingDispatch ?? 0} loading={isFetching} />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={8}>
+                <Card>
+                  <Statistic title="在岗骑手" value={data?.activeRiders ?? 0} loading={isFetching} />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={8}>
+                <Card>
+                  <Statistic
+                    title="退款异常"
+                    value={data?.refundExceptions ?? 0}
+                    loading={isFetching}
+                  />
+                </Card>
+              </Col>
+            </>
+          )}
         </Row>
         <div style={{ marginTop: 16 }}>
           <Typography.Link onClick={() => refetch()}>手动刷新</Typography.Link>

@@ -85,6 +85,7 @@ export type DeliveryStatus =
   | 'DELIVERED'
   | 'FAILED';
 export type PaymentProvider = 'MOCK' | 'OFFLINE_MERCHANT_DIRECT';
+export type FulfillmentType = 'PICKUP' | 'MERCHANT_DELIVERY' | 'RIDER_DELIVERY';
 
 export interface Order {
   id: string;
@@ -94,6 +95,7 @@ export interface Order {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   deliveryStatus: DeliveryStatus;
+  fulfillmentType?: FulfillmentType;
   paymentProvider?: PaymentProvider;
   items: OrderItem[];
   totalCents: number;

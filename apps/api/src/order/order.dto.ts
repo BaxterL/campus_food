@@ -21,11 +21,13 @@ export class OrderLineDto {
   productId?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   qty?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   quantity?: number;

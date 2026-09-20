@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ForbiddenError, NotFoundError } from '@campus-food/domain';
 import { MerchantStatus, QualificationStatus, UserRole } from '@prisma/client';
+import { resolveCampusId } from '../common/default-campus.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { RequestContext } from '../common/request-context.js';
 import {
@@ -16,8 +17,9 @@ export class MerchantService {
   constructor(private readonly prisma: PrismaService) {}
 
   onboard(dto: OnboardMerchantDto) {
+    const { campusId, ...rest } = dto;
     return this.prisma.merchant.create({
-      data: { ...dto, status: MerchantStatus.PENDING },
+      data: { ...rest, campusId: resolveCampusId(campusId), status: MerchantStatus.PENDING },
     });
   }
 

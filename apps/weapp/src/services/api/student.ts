@@ -12,7 +12,8 @@ import type {
 
 export interface CreateOrderPayload {
   merchantId: string;
-  addressId: string;
+  fulfillmentType?: 'PICKUP' | 'RIDER_DELIVERY' | 'MERCHANT_DELIVERY';
+  addressId?: string;
   items: Array<{ productId: string; skuId?: string; quantity: number }>;
   remark?: string;
   idempotencyKey: string;
@@ -28,8 +29,8 @@ export interface CreateAddressPayload {
 }
 
 export const studentApi = {
-  listMerchants(campusId?: string) {
-    return http.get<Merchant[]>('/merchants', campusId ? { campusId } : undefined);
+  listMerchants() {
+    return http.get<Merchant[]>('/merchants');
   },
 
   getMerchant(merchantId: string) {
@@ -40,8 +41,8 @@ export const studentApi = {
     return http.get<Product[]>(`/merchants/${merchantId}/products`);
   },
 
-  listBuildings(campusId?: string) {
-    return http.get<Building[]>('/buildings', campusId ? { campusId } : undefined);
+  listBuildings() {
+    return http.get<Building[]>('/buildings');
   },
 
   listAddresses() {

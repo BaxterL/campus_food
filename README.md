@@ -38,6 +38,12 @@ docker compose -f infra/docker/compose.dev.yml up -d
 pnpm check
 ```
 
+API 冒烟（需 API 已启动在 :3000）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File infra/scripts/smoke-api.ps1
+```
+
 ## 支付限制
 
 没有合规主体和审核通过的支付产品时，只允许开发模拟支付或用户直接向所属商家付款。禁止平台统一代收后人工结算。详见 [支付与结算](docs/PAYMENT_AND_SETTLEMENT.md)。
@@ -48,6 +54,8 @@ pnpm check
 
 - [架构与交付计划](docs/ARCHITECTURE_AND_DELIVERY_PLAN.md)
 - [周末灰度清单](docs/WEEKEND_LAUNCH_CHECKLIST.md)
+- [周末演示脚本](docs/WEEKEND_DEMO.md)
+- [HTTP API](docs/API.md)
 - [API 约定](docs/API_CONVENTIONS.md)
 - [支付与结算](docs/PAYMENT_AND_SETTLEMENT.md)
 - [运维手册](docs/OPERATIONS_RUNBOOK.md)

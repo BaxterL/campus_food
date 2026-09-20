@@ -10,6 +10,11 @@
         </view>
         <text class="muted">订单号 {{ order.orderNo }}</text>
         <text class="muted">支付：{{ paymentLabel(order.paymentStatus) }}</text>
+        <text v-if="order.deliveryStatus && order.deliveryStatus !== 'NONE'" class="muted">
+          配送：{{ deliveryLabel(order.deliveryStatus) }}
+        </text>
+        <text v-if="order.fulfillmentType === 'PICKUP'" class="muted">履约：到店自取</text>
+        <text v-else-if="order.addressSnapshot" class="muted">送达：{{ order.addressSnapshot }}</text>
         <text v-if="order.paymentProvider === 'OFFLINE_MERCHANT_DIRECT'" class="notice-inline">
           本单为商家线下直收，请向商家当面支付
         </text>
@@ -52,7 +57,13 @@ import { ref } from 'vue';
 import { studentApi } from '@/services/api';
 import type { Order } from '@/services/api/types';
 import { payOrder } from '@/services/payment';
-import { formatCents, ORDER_STATUS_LABEL, PAYMENT_STATUS_LABEL } from '@/utils/format';
+import { requireLogin } from '@/utils/guard';
+import {
+  DELIVERY_STATUS_LABEL,
+  formatCents,
+  ORDER_STATUS_LABEL,
+  PAYMENT_STATUS_LABEL,
+} from '@/utils/format';
 
 const orderId = ref('');
 const order = ref<Order | null>(null);
@@ -64,6 +75,7 @@ onLoad((query) => {
 });
 
 onShow(() => {
+  if (!requireLogin()) return;
   if (orderId.value) loadOrder();
 });
 
@@ -84,6 +96,10 @@ function statusLabel(status: string) {
 
 function paymentLabel(status: string) {
   return PAYMENT_STATUS_LABEL[status] || status;
+}
+
+function deliveryLabel(status: string) {
+  return DELIVERY_STATUS_LABEL[status] || status;
 }
 
 async function retryPay() {

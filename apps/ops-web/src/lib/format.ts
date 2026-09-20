@@ -37,7 +37,7 @@ export const MERCHANT_RUN_LABEL: Record<string, string> = {
 
 export const ROLE_LABEL: Record<string, string> = {
   platform_admin: '平台管理员',
-  campus_ops: '校区运营',
+  campus_ops: '运营',
   merchant_staff: '商家店员',
   rider: '骑手',
 };

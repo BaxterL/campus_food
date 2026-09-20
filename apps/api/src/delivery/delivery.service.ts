@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConflictError, ForbiddenError, NotFoundError } from '@campus-food/domain';
 import { DeliveryStatus, FulfillmentType, OrderStatus } from '@prisma/client';
+import { resolveCampusId } from '../common/default-campus.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { RequestContext } from '../common/request-context.js';
 import {
@@ -21,7 +22,8 @@ export class DeliveryService {
   constructor(private readonly prisma: PrismaService) {}
 
   createRider(dto: CreateRiderDto) {
-    return this.prisma.rider.create({ data: dto });
+    const { campusId, ...rest } = dto;
+    return this.prisma.rider.create({ data: { ...rest, campusId: resolveCampusId(campusId) } });
   }
 
   listRiders(campusId?: string) {

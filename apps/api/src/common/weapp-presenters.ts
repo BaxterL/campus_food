@@ -57,6 +57,7 @@ export function toWeappOrder(order: {
     status: order.status,
     paymentStatus: unpaid ? 'UNPAID' : order.paymentStatus,
     deliveryStatus: order.deliveryStatus,
+    fulfillmentType: order.fulfillmentType,
     paymentProvider: order.payment?.provider,
     items: order.items.map((item) => ({
       productId: item.skuId,

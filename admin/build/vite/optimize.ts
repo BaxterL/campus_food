@@ -107,6 +107,6 @@ const include = [
   'element-plus/es/components/text/style/css'
 ]
 
-const exclude = ['@iconify/json']
+const exclude = ['@iconify/json', '@videojs-player/vue', 'video.js']
 
 export { include, exclude }

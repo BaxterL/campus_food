@@ -11,6 +11,7 @@ import { RequestContext } from '../common/request-context.js';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator.js';
 import { PERMISSION_KEY } from '../common/decorators/require-permission.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { OpsAuthService } from './ops-auth.service.js';
 import { decodeDevToken, parseRole } from './role-map.js';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
+    private readonly opsAuth: OpsAuthService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -27,14 +29,25 @@ export class AuthGuard implements CanActivate {
     ]);
     if (isPublic) return true;
 
-    if (process.env.NODE_ENV === 'production') {
-      throw new ForbiddenException('Dev header auth is disabled in production');
-    }
-
     const request = context.switchToHttp().getRequest<{
       headers: Record<string, string | undefined>;
+      cookies?: Record<string, string>;
       user?: RequestContext;
     }>();
+
+    const sessionToken = request.cookies?.ops_session;
+    if (sessionToken) {
+      const sessionUser = await this.opsAuth.resolveSession(sessionToken);
+      if (!sessionUser) {
+        throw new UnauthorizedException('登录已过期，请重新登录');
+      }
+      request.user = sessionUser;
+      return this.assertPermission(request.user, context);
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      throw new UnauthorizedException('未登录');
+    }
 
     const authHeader = request.headers.authorization ?? request.headers.Authorization;
     const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
@@ -45,7 +58,7 @@ export class AuthGuard implements CanActivate {
     let merchantId = tokenPayload?.merchantId ?? request.headers['x-dev-merchant-id'];
 
     if (!userId || !roleHeader) {
-      throw new UnauthorizedException('Missing x-dev-user-id or x-dev-role header');
+      throw new UnauthorizedException('未登录');
     }
 
     const role = typeof roleHeader === 'string' ? parseRole(String(roleHeader)) : roleHeader;
@@ -67,14 +80,17 @@ export class AuthGuard implements CanActivate {
       ...(merchantId ? { merchantId } : {}),
     };
 
+    return this.assertPermission(request.user, context);
+  }
+
+  private assertPermission(user: RequestContext, context: ExecutionContext): boolean {
     const requiredPermission = this.reflector.get<Permission | undefined>(
       PERMISSION_KEY,
       context.getHandler(),
     );
-    if (requiredPermission && !hasPermission(role, requiredPermission)) {
+    if (requiredPermission && !hasPermission(user.role, requiredPermission)) {
       throw new ForbiddenException(`Missing permission: ${requiredPermission}`);
     }
-
     return true;
   }
 }

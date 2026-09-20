@@ -10,6 +10,8 @@
 - [x] 纯单元测试通过（domain 10、api auth 4、worker outbox 1）
 - [x] PostgreSQL 迁移与种子数据可重复执行
 - [x] 开发环境用 seed 用户跑通一条完整订单（API）
+- [x] 自取闭环冒烟：下单 PICKUP → MOCK → 出餐 → verify-pickup → COMPLETED
+- [x] 骑手配送冒烟：派单 → 取餐码/送达码 → COMPLETED
 - [ ] 运营后台浏览器点选验收
 - [ ] uni-app 微信开发者工具打开并完成开发登录
 

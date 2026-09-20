@@ -8,7 +8,6 @@ import {
   Form,
   Input,
   Modal,
-  Space,
   Switch,
   Table,
   Tag,
@@ -22,7 +21,7 @@ export function RiderWhitelistPage() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const { control, handleSubmit, reset } = useForm<RiderWhitelistCreateInput>({
-    defaultValues: { name: '', phone: '', campusId: 'campus-001' },
+    defaultValues: { name: '', phone: '' },
   });
 
   const { data, isLoading, error } = useQuery({
@@ -44,7 +43,7 @@ export function RiderWhitelistPage() {
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: { isActive?: boolean; onDuty?: boolean } }) =>
+    mutationFn: ({ id, patch }: { id: string; patch: { isActive?: boolean } }) =>
       riderApi.updateWhitelist(id, patch),
     onSuccess: () => {
       message.success('已更新');
@@ -56,7 +55,7 @@ export function RiderWhitelistPage() {
   const deleteMut = useMutation({
     mutationFn: (id: string) => riderApi.deleteWhitelist(id),
     onSuccess: () => {
-      message.success('已删除');
+      message.success('已移除');
       invalidate();
     },
     onError: (e: Error) => message.error(e.message),
@@ -65,23 +64,26 @@ export function RiderWhitelistPage() {
   const columns = [
     { title: '姓名', dataIndex: 'name', key: 'name' },
     { title: '电话', dataIndex: 'phone', key: 'phone' },
-    { title: '校区', dataIndex: 'campusId', key: 'campusId' },
     {
-      title: '白名单',
+      title: '允许当骑手',
       dataIndex: 'isActive',
       key: 'isActive',
       render: (v: boolean, record: { id: string }) => (
         <Switch
           checked={v}
+          checkedChildren="启用"
+          unCheckedChildren="停用"
           onChange={(checked) => updateMut.mutate({ id: record.id, patch: { isActive: checked } })}
         />
       ),
     },
     {
-      title: '值班',
+      title: '在岗',
       dataIndex: 'onDuty',
       key: 'onDuty',
-      render: (v: boolean) => <Tag color={v ? 'green' : 'default'}>{v ? '是' : '否'}</Tag>,
+      render: (v: boolean) => (
+        <Tag color={v ? 'green' : 'default'}>{v ? '在岗' : '离岗'}</Tag>
+      ),
     },
     {
       title: '创建时间',
@@ -92,20 +94,10 @@ export function RiderWhitelistPage() {
     {
       title: '操作',
       key: 'actions',
-      render: (_: unknown, record: { id: string; onDuty: boolean }) => (
-        <Space>
-          <Button
-            size="small"
-            onClick={() =>
-              updateMut.mutate({ id: record.id, patch: { onDuty: !record.onDuty } })
-            }
-          >
-            {record.onDuty ? '下班' : '上班'}
-          </Button>
-          <Button size="small" danger onClick={() => deleteMut.mutate(record.id)}>
-            删除
-          </Button>
-        </Space>
+      render: (_: unknown, record: { id: string }) => (
+        <Button size="small" danger onClick={() => deleteMut.mutate(record.id)}>
+          移除
+        </Button>
       ),
     },
   ];
@@ -113,7 +105,12 @@ export function RiderWhitelistPage() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Typography.Title level={4} style={{ margin: 0 }}>骑手白名单</Typography.Title>
+        <div>
+          <Typography.Title level={4} style={{ margin: 0 }}>骑手白名单</Typography.Title>
+          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+            「允许当骑手」由运营启用/停用；「在岗」为骑手在小程序自行上下班后的实时状态，仅供查看。
+          </Typography.Text>
+        </div>
         <Button type="primary" onClick={() => setCreateOpen(true)}>添加骑手</Button>
       </div>
 
@@ -135,13 +132,6 @@ export function RiderWhitelistPage() {
           </Form.Item>
           <Form.Item label="电话" required>
             <Controller name="phone" control={control} render={({ field }) => <Input {...field} />} />
-          </Form.Item>
-          <Form.Item label="校区 ID">
-            <Controller
-              name="campusId"
-              control={control}
-              render={({ field }) => <Input {...field} />}
-            />
           </Form.Item>
         </Form>
       </Modal>

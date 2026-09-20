@@ -1,6 +1,12 @@
 # 周末 MVP 接力说明
 
-更新时间：2026-09-16 23:48（UTC+8）
+更新时间：2026-09-20（UTC+8）
+
+## 本轮已完成
+
+- 自取（PICKUP）小程序 UI：店列表 → 菜单 → 结算 → 取餐码展示
+- 商家端 / 运营台 **已取餐核销**（`verify-pickup`）
+- 上线向 HTTP 文档 **`docs/API.md`**（自取主路径 + 骑手备选 + 路由表）
 
 给新 Agent 的入口提示（直接粘贴）：
 
@@ -10,7 +16,7 @@
 不要改旧 yshop：backend/、admin/、miniapp/、web/。
 不要提交 .env。
 PostgreSQL 17 已装且 seed 已跑；API 主链路已用 seed 用户跑通。
-继续：真机小程序、运营台浏览器、灰度部署。
+四端已齐：学生/商家/骑手小程序 + 运营后台。继续：微信开发者工具点选、真机 LAN 联调、灰度部署。
 编码子任务用 Composer 2.5。PowerShell 用分号。
 ```
 
@@ -20,7 +26,9 @@ PostgreSQL 17 已装且 seed 已跑；API 主链路已用 seed 用户跑通。
 
 必须跑通：
 
-`开发登录 → 浏览商家商品 → 单商家下单 → MOCK 或商家直收 → 商家接单出餐 → 运营派单 → 骑手取餐 → 送达码完成`
+`开发登录 → 浏览商家商品 → 单商家下单（默认自取）→ MOCK 支付 → 商家接单出餐 → 核销取餐码完成`
+
+配送备选：`运营派单 → 骑手取餐 → 送达码完成`
 
 没有公司、外卖平台类目、备案和微信支付产品审核时，只能发体验版/内部测试版。禁止平台统一代收后人工结算。
 
@@ -38,10 +46,10 @@ PostgreSQL 17 已装且 seed 已跑；API 主链路已用 seed 用户跑通。
 ## Git 状态
 
 - 工作目录：`D:\Work\platform\campus_food`
-- 当前分支：`main`，最新提交 `68074c6 init`
-- 旧 yshop + 原 admin WIP：`archive/yshop-baseline` @ `4ab93e6`
-- **新代码全部还没 commit。** `git status` 里大量 `?? apps/` `?? packages/` `?? prisma/` `?? docs/` `?? infra/`
-- 旧 `backend/` `admin/` `miniapp/` `web/` 留在仓库作参考，不要删，也不要改。
+- **主方案：轻量 TypeScript 栈（`apps/` `packages/` `prisma/`）**
+- 当前分支：`main`，最新提交 `a700619`（轻量 MVP）
+- 旧 yshop 归档：`archive/yshop-baseline` @ `4ab93e6`；`backend/` `admin/` `miniapp/` `web/` 只读参考，不要改
+- 未提交改动：四端 UI 打磨、商家店员 RBAC、`infra/scripts/smoke-api.ps1`、`docs/WEEKEND_DEMO.md`
 - `docs/WINDOWS.md`、`docs/P0_GAP.md`、`docs/WECHAT_CONFIG.md`、`docs/WSL.md` 是旧 yshop 文档，不要当新栈手册。
 
 ## 是否参考了 yshop-drink
@@ -70,29 +78,33 @@ PostgreSQL 17 已装且 seed 已跑；API 主链路已用 seed 用户跑通。
 
 `postgresql://campus_food:campus_food_dev@localhost:5432/campus_food?schema=public`
 
-## 编译证据（2026-09-16 23:00）
+## 四端产品（2026-09-17）
 
-已通过：
+| 端 | 路径 | 角色 | 能力 |
+|---|---|---|---|
+| 用户端（学生） | `apps/weapp` 学生入口 | `student` | 选店、购物车、地址、下单、MOCK/线下支付、订单/取餐码/送达码 |
+| 商家端 | `apps/weapp` 商家入口 + `apps/ops-web` | `merchant` / `merchant_staff` | 接单/拒单/出餐、售罄、营业开关；运营台添加商品/图片、库存与订单 |
+| 骑手端 | `apps/weapp` 骑手入口 | `rider` | 值班、任务列表、取餐码/送达码核验 |
+| 平台后台 | `apps/ops-web` | `platform_admin` / `campus_ops` | 商家入驻、调度派单、骑手白名单、退款/审计 |
+
+演示脚本见 **`docs/WEEKEND_DEMO.md`**。
+
+## 编译与测试证据（2026-09-17 19:10）
 
 | 命令 | 结果 |
 |---|---|
-| `pnpm --filter @campus-food/domain build` | 通过。spec 已从 domain `tsconfig.exclude` 去掉 |
-| `pnpm --filter @campus-food/api typecheck` | 通过 |
-| `pnpm --filter @campus-food/api build` | `nest build` 通过 |
-| `pnpm --filter @campus-food/worker build` | 通过 |
+| `pnpm --filter @campus-food/weapp typecheck` | 通过 |
 | `pnpm --filter @campus-food/ops-web typecheck` | 通过 |
-| `pnpm --filter @campus-food/ops-web build` | Vite 生产构建通过，chunk 约 1.2MB 可后置拆 |
-| `pnpm --filter @campus-food/weapp typecheck` | `vue-tsc --noEmit` 通过 |
 | domain tests | 10/10 |
 | api `auth.guard.spec` | 4/4 |
-| worker mocked outbox | 1/1 |
+| `infra/scripts/smoke-api.ps1` | **通过**（全链路 COMPLETED） |
 
 pnpm 11 需要批准原生依赖构建：`prisma`、`@prisma/client`、`esbuild`、`core-js`。已写在 `pnpm-workspace.yaml` 的 `onlyBuiltDependencies`。
 
 ## 仓库结构
 
 ```text
-apps/api          NestJS HTTP，前缀 /api/v1，Swagger /api/v1/docs
+apps/api          NestJS HTTP，前缀 /api/v1，Swagger /docs
 apps/worker       jobs + outbox 轮询，默认 3s
 apps/ops-web      React 运营台，开发 5174，proxy /api → :3000
 apps/weapp        uni-app 学生/商家/骑手
@@ -127,7 +139,13 @@ infra/            compose、Caddy、Dockerfile、备份脚本（本机无 Docker
 2. Bearer：`dev.<base64url(JSON{userId,role,merchantId?})>`，由 `POST /api/v1/auth/dev-login` 签发
 3. 角色别名：`student` `merchant` `rider` `platform_admin` `campus_ops` `admin` `dispatcher`
 
-运营后台登录页**不调 API**，只把身份写进 localStorage 再塞 Header。预设用户就是上面的 seed ID。
+运营后台使用**账号密码登录**（`POST /ops/auth/login`），会话写入 **HttpOnly Cookie** `ops_session`（7 天）。小程序/weapp 仍走 dev-login + Bearer。
+
+| 账号 | 密码 | 角色 |
+|---|---|---|
+| `admin` | `admin123` | 平台管理员 |
+| `ops` | `ops123` | 调度员 |
+| `merchant` | `merchant123` | 商家店员（绑定 seed-merchant-1） |
 
 小程序登录默认 `seed-user-student`，会同时带 Bearer 和 `x-dev-*`。`POST /auth/wechat-mini-login` 目前固定 400，提示走开发登录。
 
@@ -192,7 +210,7 @@ pnpm --filter @campus-food/domain test
 7. `pnpm --filter @campus-food/weapp dev:mp-weixin`，用微信开发者工具打开 `apps/weapp/dist/dev/mp-weixin`（以实际输出为准），开发登录学生身份走完下单。
 8. 提交前 `git status` 排除 `.env`。
 
-## P0（2026-09-16 23:47 已修并回归）
+## P0（2026-09-17 已修并回归）
 
 1. 商品列表 `id=productId` 另给 `skuId`；下单同时认 skuId / productId。
 2. 小程序订单状态与后端对齐：`MERCHANT_PENDING` `ACCEPTED` `READY`。
@@ -200,8 +218,14 @@ pnpm --filter @campus-food/domain test
 4. 商家「出餐完成」可从 ACCEPTED/PREPARING 到 READY。
 5. 已补 `POST /ops/auth/dev-login`。成功响应不再把数组包进 `{data}`。
 6. 灰度隐藏微信支付；确认页幂等 key 只生成一次。
+7. **商家店员 ops-web**：stats 权限 + 商家数据域；概览/菜单/路由按角色收口；登录必填 `merchantId`。
+8. **小程序**：地址编辑加载/删除；订单详情展示配送状态与地址；骑手空状态提示；各端 `requireLogin/requireRole` 守卫；隐藏微信登录按钮。
+9. **冒烟脚本**：`infra/scripts/smoke-api.ps1` 一键回归 API 全链路。
+10. **运营台商品**：账号登录 Cookie 会话；可添加商品、上传图片（本地 `/uploads`）；小程序菜单/购物车展示图片。
 
-仍开放：微信登录占位 400；`NODE_ENV=production` 时 AuthGuard 直接 403；真机小程序与 ops-web 浏览器未点选；不要把 CI 的 `uni build` 当成功标准。
+仍开放：微信登录占位 400；`NODE_ENV=production` 时 AuthGuard 直接 403；微信开发者工具/真机 UI 需人工点一遍；真机要把 `VITE_API_BASE_URL` 改成局域网 IP（见 `apps/weapp/.env.development.example`）。
+
+冒烟：`powershell -ExecutionPolicy Bypass -File infra/scripts/smoke-api.ps1`（API 需在 :3000）
 
 ## 不要做（周末）
 
@@ -220,7 +244,7 @@ pnpm --filter @campus-food/domain test
 | identity-catalog | RBAC、邀请商家、白名单骑手、SKU/库存 | **API 已跑通** |
 | order-core | 计价、幂等下单、预占、状态机、Worker | **API 已跑通（含幂等）** |
 | payments-ledger | MOCK/OFFLINE、退款入口、ledger | **MOCK 已跑通；真微信未做** |
-| delivery-ops | 人工派单、取送核验、三端页面、运营台 | **API 已跑通；真机 UI 未点** |
+| delivery-ops | 人工派单、取送核验、四端页面、运营台 | **API+页面已齐；DevTools 点选待做** |
 | production-hardening | E2E、告警、备份演练、灰度验收 | **未开始** |
 
 计划文件：`C:\Users\Administrator\.cursor\plans\校园外卖上线架构_f6c3caa8.plan.md`  
@@ -232,6 +256,7 @@ pnpm --filter @campus-food/domain test
 - API 约定：`docs/API_CONVENTIONS.md`
 - 运维：`docs/OPERATIONS_RUNBOOK.md`
 - 上线勾选：`docs/WEEKEND_LAUNCH_CHECKLIST.md`
+- 演示脚本：`docs/WEEKEND_DEMO.md`
 - ADR：`docs/ADR/001`–`004`
 
 ## 完成定义（交给下一个 Agent 验收）

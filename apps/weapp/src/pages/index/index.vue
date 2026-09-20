@@ -1,36 +1,35 @@
 <template>
   <view class="container">
-    <view class="card hero">
+    <view class="hero card">
+      <text class="kicker">Campus Food</text>
       <text class="title">校园外卖</text>
-      <text class="muted">周末 MVP · 按角色进入</text>
+      <text class="muted">点一份热乎的，送到宿舍楼下</text>
       <view v-if="session.isLoggedIn" class="user-row">
-        <text>{{ session.displayName }}</text>
-        <text class="muted">角色：{{ roleLabel }}</text>
+        <text class="name">{{ session.displayName }}</text>
+        <text class="muted">{{ roleLabel }}</text>
       </view>
-      <button v-else class="btn-primary" @tap="goLogin">去登录</button>
+      <button v-else class="btn-primary login-cta" @tap="goLogin">微信登录 / 开发登录</button>
     </view>
 
-    <view v-if="session.isLoggedIn" class="card">
-      <text class="section-title">功能入口</text>
-      <view class="entry-list">
-        <view v-if="session.hasRole('student')" class="entry" @tap="enterRole('student')">
-          <text class="entry-title">学生端</text>
-          <text class="muted">点餐、地址、订单、送达码</text>
-        </view>
-        <view v-if="session.hasRole('merchant')" class="entry" @tap="enterRole('merchant')">
-          <text class="entry-title">商家端</text>
-          <text class="muted">接单、出餐、售罄、营业开关</text>
-        </view>
-        <view v-if="session.hasRole('rider')" class="entry" @tap="enterRole('rider')">
-          <text class="entry-title">骑手端</text>
-          <text class="muted">值班、任务、取餐码、送达码</text>
-        </view>
+    <view v-if="session.isLoggedIn" class="grid">
+      <view v-if="session.hasRole('student')" class="tile card" @tap="enterRole('student')">
+        <text class="tile-emoji">🍱</text>
+        <text class="tile-title">去点餐</text>
+        <text class="muted">菜单、购物车、送达码</text>
+      </view>
+      <view v-if="session.hasRole('merchant')" class="tile card" @tap="enterRole('merchant')">
+        <text class="tile-emoji">👩‍🍳</text>
+        <text class="tile-title">出餐台</text>
+        <text class="muted">接单、出餐、售罄</text>
+      </view>
+      <view v-if="session.hasRole('rider')" class="tile card" @tap="enterRole('rider')">
+        <text class="tile-emoji">🚲</text>
+        <text class="tile-title">配送</text>
+        <text class="muted">值班与取送任务</text>
       </view>
     </view>
 
-    <view v-if="session.isLoggedIn" class="card">
-      <button class="btn-outline" @tap="logout">退出登录</button>
-    </view>
+    <button v-if="session.isLoggedIn" class="btn-outline" @tap="logout">退出登录</button>
   </view>
 </template>
 
@@ -75,46 +74,50 @@ function logout() {
 </script>
 
 <style scoped lang="scss">
-.hero {
-  text-align: center;
+.kicker {
+  font-size: 22rpx;
+  letter-spacing: 4rpx;
+  text-transform: uppercase;
+  color: rgba(41, 19, 52, 0.45);
 }
 
 .title {
   display: block;
-  font-size: 40rpx;
-  font-weight: bold;
-  margin-bottom: 8rpx;
+  font-size: 56rpx;
+  font-weight: 800;
+  margin: 8rpx 0;
 }
 
 .user-row {
   margin-top: 24rpx;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 6rpx;
 }
 
-.section-title {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 16rpx;
+.name {
+  font-weight: 700;
 }
 
-.entry-list {
+.login-cta {
+  margin-top: 28rpx;
+  width: 100%;
+}
+
+.grid {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 0;
 }
 
-.entry {
-  padding: 24rpx;
-  border: 1rpx solid #eee;
-  border-radius: 12rpx;
+.tile-emoji {
+  font-size: 48rpx;
 }
 
-.entry-title {
+.tile-title {
   display: block;
-  font-size: 32rpx;
-  font-weight: 600;
-  margin-bottom: 8rpx;
+  font-size: 34rpx;
+  font-weight: 800;
+  margin: 8rpx 0;
 }
 </style>

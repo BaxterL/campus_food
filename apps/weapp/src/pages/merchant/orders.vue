@@ -38,6 +38,14 @@
           >
             出餐完成
           </button>
+          <button
+            v-if="order.status === 'READY' && (order.fulfillmentType === 'PICKUP' || !order.deliveryCode)"
+            class="btn-primary mini"
+            size="mini"
+            @tap="verifyPickup(order)"
+          >
+            已取餐
+          </button>
         </view>
       </view>
     </view>
@@ -50,11 +58,13 @@ import { ref } from 'vue';
 import { merchantApi } from '@/services/api';
 import type { Order } from '@/services/api/types';
 import { formatDateTime, ORDER_STATUS_LABEL } from '@/utils/format';
+import { requireRole } from '@/utils/guard';
 
 const orders = ref<Order[]>([]);
 const loading = ref(false);
 
 onShow(() => {
+  if (!requireRole('merchant')) return;
   loadOrders();
 });
 
@@ -97,6 +107,29 @@ async function ready(id: string) {
   await merchantApi.markReady(id);
   uni.showToast({ title: '已出餐', icon: 'success' });
   loadOrders();
+}
+
+async function verifyPickup(order: Order) {
+  const code = order.pickupCode;
+  if (!code) {
+    uni.showToast({ title: '暂无取餐码', icon: 'none' });
+    return;
+  }
+  uni.showModal({
+    title: '确认已取餐',
+    content: `核销取餐码 ${code} 后订单完成`,
+    success: async (res) => {
+      if (!res.confirm) return;
+      try {
+        await merchantApi.verifyPickup(order.id, code);
+        uni.showToast({ title: '已取餐', icon: 'success' });
+        loadOrders();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : '核销失败';
+        uni.showToast({ title: msg, icon: 'none' });
+      }
+    },
+  });
 }
 </script>
 

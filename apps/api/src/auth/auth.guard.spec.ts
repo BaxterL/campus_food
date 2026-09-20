@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from './auth.guard.js';
 
-function mockContext(headers: Record<string, string>): ExecutionContext {
-  const request = { headers };
+function mockContext(
+  headers: Record<string, string> = {},
+  cookies: Record<string, string> = {},
+): ExecutionContext {
+  const request = { headers, cookies };
   return {
     switchToHttp: () => ({
       getRequest: () => request,
@@ -17,10 +20,11 @@ function mockContext(headers: Record<string, string>): ExecutionContext {
 describe('AuthGuard', () => {
   const reflector = { get: vi.fn(), getAllAndOverride: vi.fn(() => false) } as unknown as Reflector;
   const prisma = { merchantStaff: { findFirst: vi.fn() } };
-  const guard = new AuthGuard(reflector, prisma as never);
+  const opsAuth = { resolveSession: vi.fn() };
+  const guard = new AuthGuard(reflector, prisma as never, opsAuth as never);
 
-  it('rejects missing headers in dev', async () => {
-    await expect(guard.canActivate(mockContext({}))).rejects.toBeInstanceOf(UnauthorizedException);
+  it('rejects missing auth in dev', async () => {
+    await expect(guard.canActivate(mockContext())).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('accepts valid dev headers', async () => {
@@ -33,22 +37,15 @@ describe('AuthGuard', () => {
     expect(result).toBe(true);
   });
 
-  it('accepts frontend role aliases and bearer tokens', async () => {
+  it('accepts cookie session', async () => {
+    opsAuth.resolveSession = vi.fn().mockResolvedValue({
+      requestId: '',
+      userId: 'seed-user-admin',
+      role: 'SUPER_ADMIN',
+    });
     const result = await guard.canActivate(
-      mockContext({
-        'x-dev-user-id': 'seed-user-admin',
-        'x-dev-role': 'platform_admin',
-      }),
+      mockContext({}, { ops_session: 'session-token' }),
     );
     expect(result).toBe(true);
-  });
-
-  it('blocks dev auth in production', async () => {
-    const prev = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
-    await expect(
-      guard.canActivate(mockContext({ 'x-dev-user-id': 'u', 'x-dev-role': 'STUDENT' })),
-    ).rejects.toBeInstanceOf(ForbiddenException);
-    process.env.NODE_ENV = prev;
   });
 });

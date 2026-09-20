@@ -1,5 +1,14 @@
+import { API_BASE_URL } from '@/config';
+
 export function formatCents(cents: number): string {
   return `¥${(cents / 100).toFixed(2)}`;
+}
+
+export function resolveMediaUrl(url?: string): string {
+  if (!url) return '';
+  if (/^https?:\/\//.test(url) || url.startsWith('data:')) return url;
+  const origin = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+  return `${origin}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
 export function formatDateTime(iso: string): string {
@@ -27,4 +36,14 @@ export const PAYMENT_STATUS_LABEL: Record<string, string> = {
   PAID: '已支付',
   REFUNDED: '已退款',
   FAILED: '支付失败',
+};
+
+export const DELIVERY_STATUS_LABEL: Record<string, string> = {
+  NONE: '无需配送',
+  PENDING_DISPATCH: '待派单',
+  DISPATCHED: '已派单',
+  RIDER_ACCEPTED: '骑手已接单',
+  PICKED_UP: '配送中',
+  DELIVERED: '已送达',
+  FAILED: '配送异常',
 };

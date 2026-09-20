@@ -2,8 +2,9 @@ import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { UserRole } from '@prisma/client';
 
 export class OnboardMerchantDto {
+  @IsOptional()
   @IsString()
-  campusId!: string;
+  campusId?: string;
 
   @IsString()
   name!: string;

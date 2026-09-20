@@ -10,3 +10,4 @@ export * from './payment/types.js';
 export * from './payment/mock.provider.js';
 export * from './payment/offline-merchant-direct.provider.js';
 export * from './payment/registry.js';
+export * from './password.js';

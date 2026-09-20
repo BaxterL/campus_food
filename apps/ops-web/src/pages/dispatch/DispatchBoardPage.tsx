@@ -110,12 +110,12 @@ export function DispatchBoardPage() {
     { title: '姓名', dataIndex: 'name', key: 'name' },
     { title: '电话', dataIndex: 'phone', key: 'phone' },
     {
-      title: '值班',
+      title: '在岗',
       dataIndex: 'dutyStatus',
       key: 'dutyStatus',
       render: (v: string) => {
         const color = v === 'on_duty' ? 'green' : v === 'busy' ? 'orange' : 'default';
-        const label = v === 'on_duty' ? '在岗' : v === 'busy' ? '忙碌' : '离岗';
+        const label = v === 'on_duty' ? '在岗' : v === 'busy' ? '配送中' : '离岗';
         return <Tag color={color}>{label}</Tag>;
       },
     },

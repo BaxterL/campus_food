@@ -1,3 +1,4 @@
+import { hashPassword } from '@campus-food/domain';
 import { PrismaClient, UserRole, MerchantStatus, FulfillmentType } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -37,6 +38,18 @@ async function main() {
     where: { phone: '13800000004' },
     update: {},
     create: { id: 'seed-user-rider', phone: '13800000004', nickname: '测试骑手', role: UserRole.RIDER },
+  });
+
+  await prisma.rider.upsert({
+    where: { userId: riderUser.id },
+    update: { active: true, campusId: campus.id, name: riderUser.nickname, phone: riderUser.phone ?? '13800000004' },
+    create: {
+      userId: riderUser.id,
+      campusId: campus.id,
+      name: riderUser.nickname,
+      phone: riderUser.phone ?? '13800000004',
+      active: true,
+    },
   });
 
   const dispatcher = await prisma.user.upsert({
@@ -152,6 +165,28 @@ async function main() {
     });
   }
 
+  const opsAccounts = [
+    { username: 'admin', password: 'admin123', userId: admin.id },
+    { username: 'ops', password: 'ops123', userId: dispatcher.id },
+    { username: 'merchant', password: 'merchant123', userId: merchantOwner.id },
+  ];
+
+  for (const account of opsAccounts) {
+    await prisma.opsAccount.upsert({
+      where: { username: account.username },
+      update: {
+        passwordHash: hashPassword(account.password),
+        userId: account.userId,
+        active: true,
+      },
+      create: {
+        username: account.username,
+        passwordHash: hashPassword(account.password),
+        userId: account.userId,
+      },
+    });
+  }
+
   console.log('Seed completed:', {
     campus: campus.code,
     merchant: merchant.name,
@@ -168,6 +203,10 @@ async function main() {
       ops: 'seed-user-ops',
       merchantId: 'seed-merchant-1',
     },
+    opsAccounts: opsAccounts.map((item) => ({
+      username: item.username,
+      password: item.password,
+    })),
   });
 }
 

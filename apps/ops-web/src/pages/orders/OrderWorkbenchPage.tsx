@@ -1,7 +1,9 @@
 import { orderApi } from '@/api/client';
 import type { Order, OrderStatus } from '@/api/types';
 import { AsyncState } from '@/components/AsyncState';
+import { useAuth } from '@/contexts/AuthContext';
 import { ORDER_STATUS_LABEL, formatCents, formatDateTime } from '@/lib/format';
+import { isMerchantStaff, primaryOpsRole } from '@/lib/roles';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Button,
@@ -26,6 +28,8 @@ const WORKBENCH_STATUSES: OrderStatus[] = [
 ];
 
 export function OrderWorkbenchPage() {
+  const { user } = useAuth();
+  const role = user ? primaryOpsRole(user.roles) : null;
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<OrderStatus | undefined>();
   const [rejectId, setRejectId] = useState<string | null>(null);
@@ -74,9 +78,21 @@ export function OrderWorkbenchPage() {
     onError: (e: Error) => message.error(e.message),
   });
 
+  const verifyMut = useMutation({
+    mutationFn: ({ id, pickupCode }: { id: string; pickupCode: string }) =>
+      orderApi.verifyPickup(id, pickupCode),
+    onSuccess: () => {
+      message.success('已取餐');
+      invalidate();
+    },
+    onError: (e: Error) => message.error(e.message),
+  });
+
   const columns = [
     { title: '订单号', dataIndex: 'orderNo', key: 'orderNo' },
-    { title: '商家', dataIndex: 'merchantName', key: 'merchantName' },
+    ...(role && isMerchantStaff(role)
+      ? []
+      : [{ title: '商家', dataIndex: 'merchantName', key: 'merchantName' }]),
     {
       title: '状态',
       dataIndex: 'status',
@@ -88,6 +104,12 @@ export function OrderWorkbenchPage() {
       dataIndex: 'totalCents',
       key: 'totalCents',
       render: (v: number) => formatCents(v),
+    },
+    {
+      title: '履约',
+      dataIndex: 'fulfillmentType',
+      key: 'fulfillmentType',
+      render: (v?: string) => (v === 'PICKUP' ? '自取' : v === 'RIDER_DELIVERY' ? '骑手配送' : v ?? '-'),
     },
     {
       title: '取餐码',
@@ -124,6 +146,19 @@ export function OrderWorkbenchPage() {
           {(record.status === 'accepted' || record.status === 'preparing') && (
             <Button size="small" type="primary" onClick={() => readyMut.mutate(record.id)}>
               出餐
+            </Button>
+          )}
+          {record.status === 'ready' && (
+            <Button
+              size="small"
+              type="primary"
+              disabled={!record.pickupCode}
+              onClick={() =>
+                record.pickupCode &&
+                verifyMut.mutate({ id: record.id, pickupCode: record.pickupCode })
+              }
+            >
+              已取餐
             </Button>
           )}
         </Space>

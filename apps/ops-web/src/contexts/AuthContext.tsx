@@ -1,3 +1,5 @@
+import { authApi } from '@/api/client';
+import type { AuthMe } from '@/api/types';
 import {
   createContext,
   useCallback,
@@ -7,80 +9,53 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { setIdentityGetter } from '@/api/client';
-import type { DevIdentity, OpsRole } from '@/api/types';
-
-const STORAGE_KEY = 'ops-web-dev-identity';
-
-const PRESET_IDENTITIES: DevIdentity[] = [
-  {
-    userId: 'seed-user-admin',
-    displayName: '平台管理员',
-    role: 'platform_admin',
-    campusId: 'seed-campus-main',
-  },
-  {
-    userId: 'seed-user-ops',
-    displayName: '调度员',
-    role: 'campus_ops',
-    campusId: 'seed-campus-main',
-  },
-  {
-    userId: 'seed-user-merchant',
-    displayName: '商家店员',
-    role: 'merchant_staff',
-    campusId: 'seed-campus-main',
-    merchantId: 'seed-merchant-1',
-  },
-];
 
 interface AuthContextValue {
-  identity: DevIdentity | null;
-  presets: DevIdentity[];
-  login: (identity: DevIdentity) => void;
-  logout: () => void;
-  switchRole: (role: OpsRole) => void;
+  user: AuthMe | null;
+  loading: boolean;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function loadIdentity(): DevIdentity | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as DevIdentity) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [identity, setIdentity] = useState<DevIdentity | null>(() => loadIdentity());
+  const [user, setUser] = useState<AuthMe | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    try {
+      const me = await authApi.me();
+      setUser(me);
+    } catch {
+      setUser(null);
+    }
+  }, []);
 
   useEffect(() => {
-    setIdentityGetter(() => identity);
-  }, [identity]);
+    void (async () => {
+      setLoading(true);
+      await refresh();
+      setLoading(false);
+    })();
+  }, [refresh]);
 
-  const login = useCallback((next: DevIdentity) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setIdentity(next);
+  const login = useCallback(async (username: string, password: string) => {
+    const me = await authApi.login(username, password);
+    setUser(me);
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setIdentity(null);
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } finally {
+      setUser(null);
+    }
   }, []);
-
-  const switchRole = useCallback(
-    (role: OpsRole) => {
-      const preset = PRESET_IDENTITIES.find((item) => item.role === role);
-      if (preset) login(preset);
-    },
-    [login],
-  );
 
   const value = useMemo(
-    () => ({ identity, presets: PRESET_IDENTITIES, login, logout, switchRole }),
-    [identity, login, logout, switchRole],
+    () => ({ user, loading, login, logout }),
+    [user, loading, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

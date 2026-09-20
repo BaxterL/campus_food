@@ -24,11 +24,13 @@ import { ref } from 'vue';
 import { studentApi } from '@/services/api';
 import type { Order } from '@/services/api/types';
 import { formatCents, formatDateTime, ORDER_STATUS_LABEL } from '@/utils/format';
+import { requireLogin } from '@/utils/guard';
 
 const orders = ref<Order[]>([]);
 const loading = ref(false);
 
 onShow(() => {
+  if (!requireLogin()) return;
   loadOrders();
 });
 

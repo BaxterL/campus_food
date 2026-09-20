@@ -1,14 +1,47 @@
-$color-primary: #07c160;
-$color-danger: #ee0a24;
-$color-text: #333333;
-$color-muted: #888888;
-$color-border: #eeeeee;
-$color-bg: #f5f5f5;
+// daisyUI semantic tokens (cupcake-inspired). Mini programs cannot import daisyUI itself.
+$color-primary: #65c3c8;
+$color-primary-content: #003a3d;
+$color-secondary: #ef9fbc;
+$color-accent: #eeaf3a;
+$color-neutral: #291334;
+$color-base-100: #faf7f5;
+$color-base-200: #efeae6;
+$color-base-300: #e7e2df;
+$color-base-content: #291334;
+$color-muted: rgba(41, 19, 52, 0.55);
+$color-error: #ef4444;
+$color-success: #36d399;
+$radius-box: 24rpx;
+$radius-btn: 999rpx;
+$shadow-card: 0 8rpx 28rpx rgba(41, 19, 52, 0.06);
 
-page {
-  background: $color-bg;
-  color: $color-text;
+page,
+body,
+uni-page-body {
+  background: $color-base-200;
+  color: $color-base-content;
   font-size: 28rpx;
+  font-family: ui-sans-serif, system-ui, 'PingFang SC', 'Noto Sans SC', sans-serif;
+}
+
+button::after {
+  border: none;
+}
+
+button.btn-primary {
+  background-color: $color-primary !important;
+  color: $color-primary-content !important;
+}
+
+button.btn-outline {
+  background-color: $color-base-100 !important;
+  color: $color-primary-content !important;
+  border: 2rpx solid $color-primary !important;
+}
+
+button.btn-danger {
+  background-color: $color-error !important;
+  color: #fff !important;
 }
 
 .container {
@@ -16,10 +49,12 @@ page {
 }
 
 .card {
-  background: #ffffff;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  background: $color-base-100;
+  border-radius: $radius-box;
+  padding: 28rpx;
   margin-bottom: 20rpx;
+  border: 1rpx solid $color-base-300;
+  box-shadow: $shadow-card;
 }
 
 .row-between {
@@ -35,45 +70,60 @@ page {
 
 .btn-primary {
   background: $color-primary;
-  color: #ffffff;
-  border-radius: 12rpx;
+  color: $color-primary-content;
+  border-radius: $radius-btn;
   font-size: 30rpx;
+  font-weight: 700;
   line-height: 2.4;
+  border: none;
 }
 
 .btn-outline {
-  background: #ffffff;
-  color: $color-primary;
-  border: 1rpx solid $color-primary;
-  border-radius: 12rpx;
+  background: $color-base-100;
+  color: $color-primary-content;
+  border: 2rpx solid $color-primary;
+  border-radius: $radius-btn;
   font-size: 28rpx;
   line-height: 2.2;
 }
 
 .btn-danger {
-  background: $color-danger;
-  color: #ffffff;
-  border-radius: 12rpx;
+  background: $color-error;
+  color: #fff;
+  border-radius: $radius-btn;
   font-size: 28rpx;
   line-height: 2.2;
 }
 
+.btn-circle {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $color-primary;
+  color: $color-primary-content;
+  font-size: 40rpx;
+  line-height: 64rpx;
+  padding: 0;
+  font-weight: 700;
+}
+
 .tag {
   display: inline-block;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
+  padding: 6rpx 16rpx;
+  border-radius: $radius-btn;
   font-size: 22rpx;
-  background: #f0f0f0;
+  background: $color-base-300;
+  color: $color-base-content;
 }
 
 .tag-open {
-  background: #e8f8ee;
-  color: $color-primary;
+  background: rgba(54, 211, 153, 0.18);
+  color: #059669;
 }
 
 .tag-closed {
-  background: #fdeeee;
-  color: $color-danger;
+  background: rgba(239, 68, 68, 0.12);
+  color: $color-error;
 }
 
 .empty {
@@ -85,19 +135,19 @@ page {
 .code-box {
   text-align: center;
   padding: 32rpx;
-  background: #f8f8f8;
-  border-radius: 12rpx;
+  background: $color-base-200;
+  border-radius: $radius-box;
   font-size: 48rpx;
   font-weight: bold;
   letter-spacing: 8rpx;
 }
 
 .notice-box {
-  background: #fff7e6;
-  border: 1rpx solid #ffd591;
-  border-radius: 12rpx;
+  background: rgba(238, 175, 58, 0.16);
+  border: 1rpx solid $color-accent;
+  border-radius: $radius-box;
   padding: 20rpx;
-  color: #ad6800;
+  color: $color-neutral;
   font-size: 26rpx;
   line-height: 1.6;
 }
